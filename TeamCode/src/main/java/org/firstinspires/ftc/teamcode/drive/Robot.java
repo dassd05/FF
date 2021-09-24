@@ -26,6 +26,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
+import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+
 
 public class Robot {
     public Servo someServo = null;
@@ -183,6 +185,7 @@ public class Robot {
     }
     public static RightRed RightSideRed;
 
+
     public void composeTelemetry() {
         telemetry.addAction(new Runnable() {
             @Override
@@ -201,6 +204,50 @@ public class Robot {
         Left1.setPower(left);
         Left2.setPower(left);
         Right1.setPower(right);
-        Right2.setPower(right); //I think, don't know how they're geared together
+        Right2.setPower(right);
+    }
+
+    ElapsedTime PIDTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+    double lastError = 0;
+    double integral = 0;
+    double error = 0;
+
+    public void PIDDrive (double target, double left, double right, boolean runPID) {
+        if (runPID) {
+            PIDTimer.reset();
+            double currentHeading = getAngle();
+            error = target - currentHeading;
+            double deltaError = error - lastError;
+            integral += error * PIDTimer.time();
+            double derivative = deltaError / PIDTimer.time();
+
+            double P = pidConsts.p * error;
+            double I = pidConsts.i * integral;
+            double D = pidConsts.d * derivative;
+
+            double PID = P + I + D;
+
+            setTankPowers(left + PID, right - PID); //I think
+
+            lastError = error;
+        } else {
+            lastError = 0;
+        }
+    }
+
+    //absolutely no idea how you do this without like using rr with its quintic splines or whatever
+    public void runToPoint () {
+
+    }
+
+    //need to spend time to make this so that slippage is minimized
+    //tbh, we'll probably do a ramp up where you Range.clip the velocity up till a certain point
+    public void accelerate() {
+
+    }
+
+    public void decelerate() {
+
     }
 }
