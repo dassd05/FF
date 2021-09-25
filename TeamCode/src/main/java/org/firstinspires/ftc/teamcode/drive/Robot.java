@@ -25,6 +25,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.teamcode.util.Encoder;
+import java.util.*;
 
 import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
 
@@ -37,6 +39,8 @@ public class Robot {
     public VoltageSensor batteryVoltageSensor = null;
 
     public BNO055IMU imu = null;
+
+    public Encoder leftEncoder = null, rightEncoder = null;
 
     HardwareMap hwMap = null;
     public Telemetry telemetry = null;
@@ -53,12 +57,12 @@ public class Robot {
     public void init(HardwareMap ahwMap) {
         hwMap = ahwMap;
 
-        Left1 = hwMap.get(DcMotor.class, "Left1");
+        Left1 = hwMap.get(DcMotorEx.class, "Left1");
         Left2 = hwMap.get(DcMotor.class, "Left2");
         Right1 = hwMap.get(DcMotor.class, "Right1");
         Right2 = hwMap.get(DcMotor.class, "Right2");
 
-        Left1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Left1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         Left2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Right1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Right2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -66,9 +70,12 @@ public class Robot {
         Right1.setDirection(DcMotorSimple.Direction.REVERSE);
         Right2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        for (LynxModule module : hwMap.getAll(LynxModule.class)) {
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
+        rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
+        leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
+
+        // TODO: reverse any encoders if needed
+        leftEncoder.setDirection(Encoder.Direction.REVERSE);
+        rightEncoder.setDirection(Encoder.Direction.REVERSE);
 
         someServo = hwMap.get(Servo.class, "someServo");
 
@@ -85,6 +92,18 @@ public class Robot {
         imu.initialize(parameters);
 
         composeTelemetry();
+
+        for (LynxModule module : hwMap.getAll(LynxModule.class)) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+
+        List<DcMotor> motors = Arrays.asList(Left1, Left2, Right1, Right2); //etc.etc.
+
+        for (DcMotor motor : motors) {
+            MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
+            motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
+            motor.setMotorType(motorConfigurationType);
+        }
 
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
@@ -249,5 +268,75 @@ public class Robot {
 
     public void decelerate() {
 
+    }
+
+
+    //TODO: odo
+
+    public ElapsedTime odoTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+    public static double encoderTicksToInches(double ticks) {
+        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
+    }
+
+    public double getLeftWheelVelo() {
+        return encoderTicksToInches(leftEncoder.getCorrectedVelocity()) * LEFT_WHEEL_MULTIPLIER;
+    }
+    public double getLeftWheelPos() {
+        return encoderTicksToInches(leftEncoder.getCurrentPosition()) * LEFT_WHEEL_MULTIPLIER;
+    }
+
+    public double getRightWheelVelo() {
+        return encoderTicksToInches(rightEncoder.getCorrectedVelocity() * RIGHT_WHEEL_MULTIPLIER);
+    }
+    public double getRightWheelPos() {
+        return encoderTicksToInches(rightEncoder.getCurrentPosition()) * RIGHT_WHEEL_MULTIPLIER;
+    }
+
+
+    public static double xPos, yPos, thetaPos;
+
+    //new update method that utilizes velocity instead of positions
+    public void updatePos(double lastX, double lastY, double lastTheta, double update /* in millisecond*/) {
+
+        getRightWheelPos();
+        getLeftWheelPos();
+        double leftVelo = getLeftWheelVelo();
+        double rightVelo = getRightWheelVelo();
+
+        //calculate position for infinite radius (straight line)
+        //calculations are super easy here since no change in angle
+        if (leftVelo == rightVelo) {
+            thetaPos = lastTheta;
+            xPos = lastX + leftVelo * (update / 1000.0) * Math.cos(lastTheta); //integrates x position
+            yPos = lastY + rightVelo * (update / 1000.0) * Math.sin(lastTheta); //integrates y position
+        } else {
+            //now the hard part... calculating the change when the robot moves relative to an arc
+            double radius = (trackWidth/2.0) * ((leftVelo + rightVelo)/(rightVelo - leftVelo)); //takes the overall velocity and divides it by the difference in velocity. Intuitive way to think of it is if my robot is moving super fast, then a small discrepancy in left and right wheel would barely make the robot curve (larger radius); however, if both of my wheels were moving super slowly, then even a slight difference in velocity would make it curve more (smaller radius)
+            //don't have to worry about dividing by 0 as that case is only when deltaLeft==deltaRight, which is dealt with above
+
+            double xCurvatureCenter = lastX - radius * Math.sin(lastTheta);
+            double yCurvatureCenter = lastY + radius * Math.cos(lastTheta);
+            //i think the calculations here might get thrown off if loops are too slow
+            //now that we have the radius, we just take the the x and y lengths and subtract them from our current x and y position
+
+            double deltaTheta = ((getRightWheelVelo() - getLeftWheelVelo()) / trackWidth) * (update * 1000.0);
+            //increases turning left
+
+            thetaPos = lastTheta + deltaTheta;
+            xPos = Math.cos(deltaTheta) * (lastX - xCurvatureCenter) - Math.sin(deltaTheta) * (lastY - yCurvatureCenter) + xCurvatureCenter;
+            yPos = Math.sin(deltaTheta) * (lastX - xCurvatureCenter) - Math.cos(deltaTheta) * (lastY - yCurvatureCenter) + yCurvatureCenter;
+            odoTimer.reset();
+        }
+    }
+
+    public double getX() {
+        return xPos;
+    }
+    public double getY() {
+        return yPos;
+    }
+    public double getTheta() {
+        return thetaPos;
     }
 }
