@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Autons.Blue;
+package org.firstinspires.ftc.teamcode.drive.Autons.Red;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -6,15 +6,15 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection;
 import org.firstinspires.ftc.teamcode.drive.Robot;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-import static org.firstinspires.ftc.teamcode.drive.Autons.Blue.BoxPositionDetection.pipeline;
-import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.pipeline;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "R2")
-public class BlueLeft extends LinearOpMode {
+@Autonomous(group = "A", name = "Red Right", preselectTeleOp = "RedTele")
+public class Red2 extends LinearOpMode {
 
     Robot r = new Robot();
 
@@ -42,7 +42,9 @@ public class BlueLeft extends LinearOpMode {
 
         webcamInit();
 
-        //initialize pose estimate here
+        xPos = 0.0;
+        yPos = 0.0;
+        thetaPos = 0.0; //ofc might want to change
 
         while (!opModeIsActive())
             updateBoxPosition();
@@ -52,24 +54,25 @@ public class BlueLeft extends LinearOpMode {
         if (isStopRequested()) return;
 
         r.autonWaitTimer.reset();
+        r.odoTimer.reset();
 
         while (opModeIsActive()) {
 
             switch (WhatPosition) {
                 case LEFT_POSITION:
-                    switch (LeftBlueState) {
+                    switch (LeftRedState) {
 
                     }
                     break;
 
                 case RIGHT_POSITION:
-                    switch (RightBlueState) {
+                    switch (RightRedState) {
 
                     }
                     break;
 
                 case MIDDLE_POSITION:
-                    switch (MiddleBlueState) {
+                    switch (MiddleRedState) {
 
                     }
                     break;

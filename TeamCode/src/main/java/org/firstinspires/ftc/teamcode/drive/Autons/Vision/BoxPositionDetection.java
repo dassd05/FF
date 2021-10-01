@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Autons.Blue;
+package org.firstinspires.ftc.teamcode.drive.Autons.Vision;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -39,7 +39,7 @@ public abstract class BoxPositionDetection extends LinearOpMode {
     public int cameraMonitorViewId = hardwareMap.appContext.getResources().
             getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
-    protected static BoxDetection pipeline = new BoxDetection();
+    public static BoxDetection pipeline = new BoxDetection();
 
     public enum BoxPosition {
         RIGHT,

@@ -24,6 +24,8 @@ public class LocalizerTest extends LinearOpMode {
 
         waitForStart();
 
+        r.odoTimer.reset();
+
         while (opModeIsActive()) {
 
             double forward = gamepad1.right_stick_y; //might need to reverse joystick direction

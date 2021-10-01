@@ -187,6 +187,23 @@ public class Robot {
     }
     public static RightBlue RightBlueState;
 
+    public enum LeftBlue2 {
+
+    }
+    public static LeftBlue2 LeftBlueState2;
+
+
+    public enum MiddleBlue2 {
+
+    }
+    public static MiddleBlue2 MiddleBlueState2;
+
+
+    public enum RightBlue2 {
+
+    }
+    public static RightBlue2 RightBlueState2;
+
 
     public enum LeftRed {
 
@@ -296,6 +313,7 @@ public class Robot {
     public static double xPos, yPos, thetaPos;
 
     //new update method that utilizes velocity instead of positions
+    //might need to make adjustments (e.g. using position change rather than getVelo, using position instead of velo * time, etc.)
     public void updatePos(double lastX, double lastY, double lastTheta, double update /* in millisecond*/) {
 
         getRightWheelPos();
