@@ -19,7 +19,7 @@ public class LocalizerTest extends LinearOpMode {
 
         r.telemetry = telemetry;
         r.dashboard = FtcDashboard.getInstance();
-        r.init(hardwareMap); //init hardware
+        r.init(hardwareMap);
         telemetry = new MultipleTelemetry(telemetry, r.dashboard.getTelemetry());
 
         waitForStart();
@@ -43,6 +43,8 @@ public class LocalizerTest extends LinearOpMode {
             telemetry.addData("y", r.getY());
             telemetry.addData("theta", r.getTheta());
             telemetry.addData("imu", r.getAngle());
+            //telemetry.addData("gamepad y", forward);
+            //telemetry.addData("gamepad x", turn);
             telemetry.update();
         }
     }

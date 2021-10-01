@@ -55,6 +55,7 @@ public class Robot {
     }
 
     public void init(HardwareMap ahwMap) {
+        //TODO: hardware mappings
         hwMap = ahwMap;
 
         Left1 = hwMap.get(DcMotorEx.class, "Left1");
@@ -82,7 +83,7 @@ public class Robot {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
@@ -105,7 +106,7 @@ public class Robot {
             motor.setMotorType(motorConfigurationType);
         }
 
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+        //imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
         telemetry.update();
         telemetry.clearAll();
@@ -172,37 +173,37 @@ public class Robot {
     public enum LeftBlue {
 
     }
-    public static LeftBlue LeftSideBlue;
+    public static LeftBlue LeftBlueState;
 
 
     public enum MiddleBlue {
 
     }
-    public static MiddleBlue MiddleSideBlue;
+    public static MiddleBlue MiddleBlueState;
 
 
     public enum RightBlue {
 
     }
-    public static RightBlue RightSideBlue;
+    public static RightBlue RightBlueState;
 
 
     public enum LeftRed {
 
     }
-    public static LeftRed LeftSideRed;
+    public static LeftRed LeftRedState;
 
 
     public enum MiddleRed {
 
     }
-    public static MiddleRed MiddleSideRed;
+    public static MiddleRed MiddleRedState;
 
 
     public enum RightRed {
 
     }
-    public static RightRed RightSideRed;
+    public static RightRed RightRedState;
 
 
     public void composeTelemetry() {
@@ -270,8 +271,6 @@ public class Robot {
 
     }
 
-
-    //TODO: odo
 
     public ElapsedTime odoTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
