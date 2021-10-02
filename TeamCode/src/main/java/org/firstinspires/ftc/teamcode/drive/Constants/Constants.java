@@ -27,7 +27,7 @@ public class Constants {
     public static double THRESHOLD = 0.0;
 
     public static final Point LEFT_REGION1_TOPLEFT_ANCHOR_POINT = new Point(500, 500);
-    public static final Point LEFT_REGION2_TOPLEFT_ANCHOR_POINT = new Point(500, 500);
+    public static final Point LEFT_REGION2_TOPLEFT_ANCHOR_POINT = new Point(500, 1000);
 
     public static final int LEFT_REGION_WIDTH = 280;
     public static final int LEFT_REGION_HEIGHT = 180;
