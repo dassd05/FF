@@ -127,10 +127,10 @@ public abstract class BoxPositionDetection extends LinearOpMode {
                     BLUE,
                     2);
 
-            int maxOneTwo = Math.max(avg1, avg2);
-            int max = Math.max(maxOneTwo, avg3);
+            int greater1or2 = Math.max(avg1, avg2);
+            int greatest = Math.max(greater1or2, avg3);
 
-            if(max == avg1) {
+            if(greatest == avg1) {
                 position = BoxPosition.LEFT;
 
                 Imgproc.rectangle(
@@ -140,7 +140,7 @@ public abstract class BoxPositionDetection extends LinearOpMode {
                         GREEN,
                         -1);
             }
-            else if(max == avg2) {
+            else if(greatest == avg2) {
                 position = BoxPosition.MIDDLE;
 
                 Imgproc.rectangle(
@@ -150,7 +150,7 @@ public abstract class BoxPositionDetection extends LinearOpMode {
                         GREEN,
                         -1);
             }
-            else if(max == avg3) {
+            else if(greatest == avg3) {
                 position = BoxPosition.RIGHT;
 
                 Imgproc.rectangle(
