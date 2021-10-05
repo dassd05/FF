@@ -18,16 +18,21 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.util.Encoder;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
+
 import java.util.*;
 
+import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.pipeline;
 import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
 
 
@@ -41,6 +46,9 @@ public class Robot {
     public BNO055IMU imu = null;
 
     public Encoder leftEncoder = null, rightEncoder = null;
+
+    public WebcamName webcamName;
+    public OpenCvWebcam webcam;
 
     HardwareMap hwMap = null;
     public Telemetry telemetry = null;
@@ -112,6 +120,28 @@ public class Robot {
         telemetry.clearAll();
     }
 
+    public void webcamInit(HardwareMap ahwMap) {
+        hwMap = ahwMap;
+
+        int cameraMonitorViewId = hwMap.appContext.getResources().
+                getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
+
+        webcamName = hwMap.get(WebcamName.class, "Webcam 1");
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+        webcam.setPipeline(pipeline);
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(960, 720, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+            }
+        });
+    }
+
     public enum deployState {
         DOWN,
         MIDDLE,
@@ -165,7 +195,6 @@ public class Robot {
     public void updateAllStates() {
         updateDeployState();
     }
-
 
     public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 

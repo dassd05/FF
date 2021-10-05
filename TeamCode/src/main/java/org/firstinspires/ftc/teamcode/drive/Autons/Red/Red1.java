@@ -18,9 +18,6 @@ public class Red1 extends LinearOpMode {
 
     Robot r = new Robot();
 
-    protected WebcamName webcamName;
-    protected OpenCvWebcam webcam;
-
     public enum ThisPosition {
         LEFT_POSITION,
         MIDDLE_POSITION,
@@ -40,11 +37,13 @@ public class Red1 extends LinearOpMode {
         r.init(hardwareMap);
         telemetry = new MultipleTelemetry(telemetry, r.dashboard.getTelemetry());
 
-        webcamInit();
+        r.webcamInit(hardwareMap);
 
         xPos = 0.0;
         yPos = 0.0;
         thetaPos = 0.0; //ofc might want to change
+
+        sleep(150);
 
         while (!opModeIsActive())
             updateBoxPosition();
@@ -55,6 +54,7 @@ public class Red1 extends LinearOpMode {
 
         r.autonWaitTimer.reset();
         r.odoTimer.reset();
+        r.webcam.stopStreaming();
 
         while (opModeIsActive()) {
 
@@ -87,10 +87,6 @@ public class Red1 extends LinearOpMode {
         }
     }
 
-    public void webcamInit() {
-        //need to change
-    }
-
     public void updateBoxPosition() {
         if (pipeline.position == null) {
             telemetry.addData("still working on it", "gimme a sec");
@@ -106,5 +102,6 @@ public class Red1 extends LinearOpMode {
             WhatPosition = ThisPosition.LEFT_POSITION;
         }
         telemetry.update();
+        sleep(75);
     }
 }

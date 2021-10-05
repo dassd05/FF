@@ -26,10 +26,12 @@ public class Constants {
     //box detecting constants
     public static double THRESHOLD = 0.0;
 
-    public static final Point LEFT_REGION1_TOPLEFT_ANCHOR_POINT = new Point(500, 500);
-    public static final Point LEFT_REGION2_TOPLEFT_ANCHOR_POINT = new Point(500, 1000);
+    public static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(500, 500);
+    public static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(750, 500);
+    public static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(1000, 500);
 
-    public static final int LEFT_REGION_WIDTH = 280;
-    public static final int LEFT_REGION_HEIGHT = 180;
+
+    public static final int REGION_WIDTH = 100;
+    public static final int REGION_HEIGHT = 100;
     //TODO: fix all the box detecting constants
 }
