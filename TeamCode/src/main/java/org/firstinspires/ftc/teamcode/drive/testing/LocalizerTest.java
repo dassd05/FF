@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.drive.Robot;
 
-@TeleOp(name = "TeleOp Blue", group = "1")
+@TeleOp(name = "Localizer Testing")
 public class LocalizerTest extends LinearOpMode {
 
     Robot r = new Robot(); //instantiate Robot object

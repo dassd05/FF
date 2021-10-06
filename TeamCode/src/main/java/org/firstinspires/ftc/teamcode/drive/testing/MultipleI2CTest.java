@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.drive.testing;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -10,12 +11,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
 @TeleOp
-public class IMUTest extends LinearOpMode {
+public class MultipleI2CTest extends LinearOpMode {
 
     public BNO055IMU imu;
+
+    public Rev2mDistanceSensor sensor;
 
     Orientation angles;
     Acceleration gravity;
@@ -33,6 +39,11 @@ public class IMUTest extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
+        sensor = hardwareMap.get(Rev2mDistanceSensor.class, "sensor");
+
+        double distance = 0;
+        double angle = 0.0;
+
         composeTelemetry();
 
         ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -44,12 +55,15 @@ public class IMUTest extends LinearOpMode {
 
         if (opModeIsActive()) {
             while(opModeIsActive()) {
-                //telemetry.addData("angle", angles.thirdAngle);
+
+                if (getRuntime() > 10) {
+                    distance = sensor.getDistance(DistanceUnit.CM);
+                }
                 cycles++;
-                telemetry.addData("cycles per millisecond", cycles/timer.time());
-                telemetry.addData("imu z angle", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
-                telemetry.addData("imu y angle", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).secondAngle);
-                telemetry.addData("imu x angle", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).thirdAngle);
+                telemetry.addData("cycles per millisecond", 1/timer.time());
+                timer.reset();
+                telemetry.addData("imu z angle", angle);
+                telemetry.addData("distance", distance);
                 telemetry.update();
             }
         }
@@ -65,3 +79,4 @@ public class IMUTest extends LinearOpMode {
         });
     }
 }
+
