@@ -1,13 +1,21 @@
 package org.firstinspires.ftc.teamcode.drive.testing;
 
+import org.firstinspires.ftc.teamcode.util.Encoder;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+
+@Deprecated
 public class LocalizationTesting {
+
+    public Encoder leftEncoder, rightEncoder;
 
     //trying to implement own localization using wheel encoders
     //need an accurate way to measure ticks (and therefore velocity), but because resolution maxes out at 28 * whatever gear ratio we're using, accuracy becomes kinda difficult
 
     //so normally, you usually use velocity and multiply it by time to get change in position for differential drives, but because REV's getVelocity is garbage, using distance is probably better, though still not as accurate (again cause low ticks per revolution)
-
-    double trackWidth = 0.0; //to determine delta theta
 
     double xPos, yPos, thetaPos;
 
