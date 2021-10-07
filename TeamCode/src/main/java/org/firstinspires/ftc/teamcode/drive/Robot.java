@@ -266,6 +266,13 @@ public class Robot {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 
+    public double getOdoAngle() {
+        if (getThetaDegrees() > 180)
+            return (360 - getThetaDegrees());
+        else
+            return -getThetaDegrees(); //we switch the signs cause odo returns increasing angle counter clockwise
+    }
+
     public void setTankPowers(double left, double right) {
         Left1.setPower(left);
         Left2.setPower(left);
@@ -279,14 +286,15 @@ public class Robot {
     double integral = 0;
     double error = 0;
 
-    public void PIDDrive (double target, double left, double right, boolean runPID) {
+    public void PIDDrive (double target, double left, double right, boolean runPID, long update) {
         if (runPID) {
-            PIDTimer.reset();
+            //probably maybe switch to getOdoAngle() cause no I2C lag plus this imu seems to drift
             double currentHeading = getAngle();
             error = target - currentHeading;
             double deltaError = error - lastError;
             integral += error * PIDTimer.time();
-            double derivative = deltaError / PIDTimer.time();
+            double derivative = deltaError / update;
+            PIDTimer.reset();
 
             double P = pidConsts.p * error;
             double I = pidConsts.i * integral;
@@ -299,6 +307,7 @@ public class Robot {
             lastError = error;
         } else {
             lastError = 0;
+            PIDTimer.reset();
         }
     }
 
@@ -356,6 +365,7 @@ public class Robot {
             thetaPos = lastTheta;
             xPos = lastX + leftVelo * (update / 1000.0) * Math.cos(lastTheta); //integrates x position
             yPos = lastY + rightVelo * (update / 1000.0) * Math.sin(lastTheta); //integrates y position
+            odoTimer.reset();
         } else {
             //now the hard part... calculating the change when the robot moves relative to an arc
             double radius = (trackWidth/2.0) * ((leftVelo + rightVelo)/(rightVelo - leftVelo)); //takes the overall velocity and divides it by the difference in velocity. Intuitive way to think of it is if my robot is moving super fast, then a small discrepancy in left and right wheel would barely make the robot curve (larger radius); however, if both of my wheels were moving super slowly, then even a slight difference in velocity would make it curve more (smaller radius)
@@ -368,11 +378,16 @@ public class Robot {
 
             double deltaTheta = ((getRightWheelVelo() - getLeftWheelVelo()) / trackWidth) * (update * 1000.0);
             //increases turning left
+            odoTimer.reset();
 
-            thetaPos = lastTheta + deltaTheta;
+            //thetaPos = lastTheta + deltaTheta;
+            if (Math.toDegrees((lastTheta + deltaTheta)) > 360)
+                thetaPos = (lastTheta + deltaTheta) - Math.toRadians(360);
+            else
+                thetaPos = (lastTheta + deltaTheta);
+
             xPos = Math.cos(deltaTheta) * (lastX - xCurvatureCenter) - Math.sin(deltaTheta) * (lastY - yCurvatureCenter) + xCurvatureCenter;
             yPos = Math.sin(deltaTheta) * (lastX - xCurvatureCenter) - Math.cos(deltaTheta) * (lastY - yCurvatureCenter) + yCurvatureCenter;
-            odoTimer.reset();
         }
     }
 
@@ -384,5 +399,8 @@ public class Robot {
     }
     public double getTheta() {
         return thetaPos;
+    }
+    public double getThetaDegrees() {
+        return Math.toDegrees(thetaPos);
     }
 }
