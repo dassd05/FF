@@ -43,7 +43,7 @@ public class Blue1 extends LinearOpMode {
         yPos = 0.0;
         thetaPos = 0.0; //ofc might want to change
 
-        sleep(150);
+        sleep(150); //just to make sure webcam is properly initialized before updateBoxPosition()
 
         while (!opModeIsActive())
             updateBoxPosition();
@@ -92,17 +92,17 @@ public class Blue1 extends LinearOpMode {
         if (pipeline.position == null) {
             telemetry.addData("still working on it", "gimme a sec");
         } else if (pipeline.position == BoxPositionDetection.BoxPosition.RIGHT){
-            telemetry.addData("Four Rings", "Waiting for start");
+            telemetry.addData("Right Position", "Waiting for start");
             WhatPosition = ThisPosition.RIGHT_POSITION;
             telemetry.update();
         } else if (pipeline.position == BoxPositionDetection.BoxPosition.MIDDLE){
-            telemetry.addData("One Ring", "Waiting for start");
+            telemetry.addData("Middle Position", "Waiting for start");
             WhatPosition = ThisPosition.MIDDLE_POSITION;
         } else if (pipeline.position == BoxPositionDetection.BoxPosition.LEFT){
-            telemetry.addData("Zero Rings", "Waiting for start");
+            telemetry.addData("Left Position", "Waiting for start");
             WhatPosition = ThisPosition.LEFT_POSITION;
         }
         telemetry.update();
-        sleep(75);
+        sleep(75); //so we don't burn cpu cycles
     }
 }

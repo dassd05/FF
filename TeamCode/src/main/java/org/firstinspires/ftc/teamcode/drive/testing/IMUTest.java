@@ -37,19 +37,16 @@ public class IMUTest extends LinearOpMode {
 
         ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
-        int cycles = 0;
-
         waitForStart();
         timer.reset();
 
         if (opModeIsActive()) {
             while(opModeIsActive()) {
-                //telemetry.addData("angle", angles.thirdAngle);
-                cycles++;
-                telemetry.addData("cycles per millisecond", cycles/timer.time());
+                telemetry.addData("cycles per millisecond", 1/timer.time());
+                timer.reset();
                 telemetry.addData("imu z angle", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
-                telemetry.addData("imu y angle", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).secondAngle);
-                telemetry.addData("imu x angle", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).thirdAngle);
+                telemetry.addData("imu z angle", imu.getAngularOrientation(AxesReference.EXTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
+                //to test extrinsic vs intrinsic
                 telemetry.update();
             }
         }

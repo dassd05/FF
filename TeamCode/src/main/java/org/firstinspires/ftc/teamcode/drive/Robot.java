@@ -114,8 +114,6 @@ public class Robot {
             motor.setMotorType(motorConfigurationType);
         }
 
-        //imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
-
         telemetry.update();
         telemetry.clearAll();
     }
@@ -264,6 +262,7 @@ public class Robot {
 
     public double getAngle() {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        //might want to experiment with extrinsic, but Im not sure if it will actually reduce drift
     }
 
     public double getOdoAngle() {
@@ -289,6 +288,7 @@ public class Robot {
     public void PIDDrive (double target, double left, double right, boolean runPID, long update) {
         if (runPID) {
             //probably maybe switch to getOdoAngle() cause no I2C lag plus this imu seems to drift
+            //also kinda need a new hub, this one isn't very good at all
             double currentHeading = getAngle();
             error = target - currentHeading;
             double deltaError = error - lastError;
@@ -352,7 +352,10 @@ public class Robot {
 
     //new update method that utilizes velocity instead of positions
     //might need to make adjustments (e.g. using position change rather than getVelo, using position instead of velo * time, etc.)
-    public void updatePos(double lastX, double lastY, double lastTheta, double update /* in millisecond*/) {
+    public void updatePos(double lastX, double lastY, double lastTheta, double update /* in millisecond*/ /*,
+                          boolean imuUpdate  idea that sets a timer and once it gets to a setpoint
+                          (i.e. every 500 ms), it will update the angle to prevent significant drift over
+                          time while not having to go through a slow I2C call every update*/) {
 
         getRightWheelPos();
         getLeftWheelPos();
@@ -362,13 +365,17 @@ public class Robot {
         //calculate position for infinite radius (straight line)
         //calculations are super easy here since no change in angle
         if (leftVelo == rightVelo) {
+            // if(imuUpdate)
+            //      lastTheta = getAngle(); update method to prevent angle drift over time
+            // else
+            //      thetaPos = lastTheta;
             thetaPos = lastTheta;
             xPos = lastX + leftVelo * (update / 1000.0) * Math.cos(lastTheta); //integrates x position
             yPos = lastY + rightVelo * (update / 1000.0) * Math.sin(lastTheta); //integrates y position
             odoTimer.reset();
         } else {
             //now the hard part... calculating the change when the robot moves relative to an arc
-            double radius = (trackWidth/2.0) * ((leftVelo + rightVelo)/(rightVelo - leftVelo)); //takes the overall velocity and divides it by the difference in velocity. Intuitive way to think of it is if my robot is moving super fast, then a small discrepancy in left and right wheel would barely make the robot curve (larger radius); however, if both of my wheels were moving super slowly, then even a slight difference in velocity would make it curve more (smaller radius)
+            double radius = (trackWidth / 2.0) * ((leftVelo + rightVelo) / (rightVelo - leftVelo)); //takes the overall velocity and divides it by the difference in velocity. Intuitive way to think of it is if my robot is moving super fast, then a small discrepancy in left and right wheel would barely make the robot curve (larger radius); however, if both of my wheels were moving super slowly, then even a slight difference in velocity would make it curve more (smaller radius)
             //don't have to worry about dividing by 0 as that case is only when deltaLeft==deltaRight, which is dealt with above
 
             double xCurvatureCenter = lastX - radius * Math.sin(lastTheta);
@@ -380,9 +387,23 @@ public class Robot {
             //increases turning left
             odoTimer.reset();
 
+            // if (imuUpdate)
+            //      thetaPos = getAngle();
+            // else {
+            //      if (Math.toDegrees((lastTheta + deltaTheta)) > 360)
+            //          thetaPos = (lastTheta + deltaTheta) - Math.toRadians(360);
+            //      else
+            //          thetaPos = (lastTheta + deltaTheta);
+            //      }
+            // alternate method to update angle through imu every now and then (i.e. every 500 ms) to reduce cycle time
+
             //thetaPos = lastTheta + deltaTheta;
+
+            // added checks to maintain angle between 0 - 360
             if (Math.toDegrees((lastTheta + deltaTheta)) > 360)
                 thetaPos = (lastTheta + deltaTheta) - Math.toRadians(360);
+            else if (Math.toDegrees(lastTheta + deltaTheta) < 0)
+                thetaPos = (lastTheta + deltaTheta) + Math.toRadians(360);
             else
                 thetaPos = (lastTheta + deltaTheta);
 
