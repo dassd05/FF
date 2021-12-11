@@ -10,7 +10,14 @@ import java.util.*;
 @Config
 public class Constants {
 
+    public static double BOX_ROTATION_DOWN = 0.0;
+    public static double BOX_ROTATION_UP = 0.0;
+    public static double BOX_ROTATION_DEPLOY = 0.0;
+
+    public static double INTAKE_POWER = 0.75;
+
     public static PIDCoefficients pidConsts = new PIDCoefficients(0.0, 0.000, 0.0);
+    public static PIDCoefficients pidConstsSlides = new PIDCoefficients(0.0, 0.000, 0.0);
     //TODO: tune PID
 
     public static double WHEEL_RADIUS = 0.0;

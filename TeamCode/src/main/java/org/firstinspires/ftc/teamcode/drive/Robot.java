@@ -6,6 +6,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -37,9 +39,14 @@ import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
 
 
 public class Robot {
-    public Servo someServo = null;
+    public Servo boxServo = null, linkage1 = null, linkage2 = null;
+    public CRServoImplEx carousel1 = null, carousel2 = null;
 
     public DcMotor Left1 = null, Left2 = null, Right1 = null, Right2 = null;
+
+    public DcMotor intake = null;
+
+    public DcMotorEx slides1 = null, slides2 = null;
 
     public VoltageSensor batteryVoltageSensor = null;
 
@@ -66,7 +73,7 @@ public class Robot {
         //TODO: hardware mappings
         hwMap = ahwMap;
 
-        Left1 = hwMap.get(DcMotorEx.class, "Left1");
+        Left1 = hwMap.get(DcMotor.class, "Left1");
         Left2 = hwMap.get(DcMotor.class, "Left2");
         Right1 = hwMap.get(DcMotor.class, "Right1");
         Right2 = hwMap.get(DcMotor.class, "Right2");
@@ -77,7 +84,15 @@ public class Robot {
         Right2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         Right1.setDirection(DcMotorSimple.Direction.REVERSE);
-        Right2.setDirection(DcMotorSimple.Direction.REVERSE);
+        Left1.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        slides1 = hwMap.get(DcMotorEx.class, "slides1");
+        slides2 = hwMap.get(DcMotorEx.class, "slides2");
+
+        slides1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        slides2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        intake = hwMap.get(DcMotor.class, "intake");
 
         rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
         leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
@@ -86,7 +101,11 @@ public class Robot {
         leftEncoder.setDirection(Encoder.Direction.REVERSE);
         rightEncoder.setDirection(Encoder.Direction.REVERSE);
 
-        someServo = hwMap.get(Servo.class, "someServo");
+        boxServo = hwMap.get(Servo.class, "boxServo");
+        carousel1 = hwMap.get(CRServoImplEx.class, "carousel1");
+        carousel2 = hwMap.get(CRServoImplEx.class, "carousel2");
+        linkage1 = hwMap.get(Servo.class, "linkage1");
+        linkage2 = hwMap.get(Servo.class, "linkage2");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -106,9 +125,15 @@ public class Robot {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        List<DcMotor> motors = Arrays.asList(Left1, Left2, Right1, Right2); //etc.etc.
+        List<DcMotor> motors = Arrays.asList(Left1, Left2, Right1, Right2, intake); //etc.etc.
+        List<DcMotorEx> motorsEx = Arrays.asList(slides1, slides2);
 
         for (DcMotor motor : motors) {
+            MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
+            motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
+            motor.setMotorType(motorConfigurationType);
+        }
+        for (DcMotorEx motor : motorsEx) {
             MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
             motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
             motor.setMotorType(motorConfigurationType);
@@ -154,6 +179,9 @@ public class Robot {
     public boolean resetTimer = true;
     public boolean isPositionReached = false;
 
+    boolean doPIDStuffSlides = false;
+    double desiredSlidesPosition = 0.0;
+
     public void updateDeployState() {
         switch (deploymentState) {
             case DOWN:
@@ -190,8 +218,130 @@ public class Robot {
         deployTimer.reset();
     }
 
+    public enum IntakeState {
+        OFF,
+        REVERSE,
+        ON
+    }
+
+    public IntakeState intakeState;
+
+    public void updateIntakeState() {
+        switch (intakeState) {
+            case ON:
+                break;
+
+            case REVERSE:
+                break;
+
+            case OFF:
+                break;
+        }
+    }
+
+    public void intakeOn() {
+        intakeState = IntakeState.ON;
+    }
+
+    public void intakeOff() {
+        intakeState = IntakeState.OFF;
+    }
+
+    public void intakeReverse() {
+        intakeState = IntakeState.REVERSE;
+    }
+
+    public enum BoxState {
+        COLLECT,
+        DROP
+    }
+
+    public BoxState boxState;
+
+    //public ElapsedTime boxTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    //dont need it
+
+    public void updateBoxState() {
+        switch (boxState) {
+            case DROP:
+                break;
+
+            case COLLECT:
+                break;
+        }
+    }
+
+    public void dropoffBox() {
+        boxState = BoxState.DROP;
+    }
+
+    public void collectBox() {
+        boxState = BoxState.COLLECT;
+    }
+
+    public enum TeamShippingElementState {
+
+    }
+
     public void updateAllStates() {
         updateDeployState();
+        updateIntakeState();
+        updateBoxState();
+    }
+
+    public double adjustment = 0;
+
+    public void adjust(double adjust) {
+        adjustment += adjust;
+    }
+    public void resetAdjustment() {
+        adjustment = 0;
+    }
+
+    ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+    double errorSlides1 = 0.0;
+    double errorSlides2 = 0.0;
+    double lastErrorSlides1 = 0.0;
+    double lastErrorSlides2 = 0.0;
+    double integralSlides1 = 0.0;
+    double integralSlides2 = 0.0;
+
+    public void linearSlidesPID(double position, long update, boolean runPID) {
+        if (runPID) {
+            double currentPosition1 = slides1.getCurrentPosition();
+            double currentPosition2 = slides2.getCurrentPosition();
+            errorSlides1 = position - currentPosition1;
+            errorSlides2 = position - currentPosition2;
+            double deltaError1 = errorSlides1 - lastErrorSlides1;
+            double deltaError2 = errorSlides2 - lastErrorSlides2;
+            integralSlides1 += errorSlides1 * update;
+            integralSlides2 += errorSlides2 * update;
+            double derivative1 = deltaError1 / update;
+            double derivative2 = deltaError2 / update;
+            slidesTimer.reset();
+
+            double P1 = pidConstsSlides.p * errorSlides1;
+            double P2 = pidConstsSlides.p * errorSlides2;
+            double I1 = pidConstsSlides.i * integralSlides1;
+            double I2 = pidConstsSlides.i * integralSlides2;
+            double D1 = pidConstsSlides.d * derivative1;
+            double D2 = pidConstsSlides.d * derivative2;
+
+            slides1.setPower(P1 + I1 + D1);
+            slides2.setPower(P2 + I2 + D2);
+
+            lastErrorSlides1 = errorSlides1;
+            lastErrorSlides2 = errorSlides2;
+        } else {
+            double errorSlides1 = 0.0;
+            double errorSlides2 = 0.0;
+            double lastErrorSlides1 = 0.0;
+            double lastErrorSlides2 = 0.0;
+            double integralSlides1 = 0.0;
+            double integralSlides2 = 0.0;
+            slidesTimer.reset();
+        }
     }
 
     public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -279,35 +429,44 @@ public class Robot {
         Right2.setPower(right);
     }
 
-    ElapsedTime PIDTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public void setTankPowers(double forward, double turn, double multiplier) {
+        Left1.setPower((forward + turn) * multiplier);
+        Left2.setPower((forward + turn) * multiplier);
+        Right1.setPower((forward - turn) * multiplier);
+        Right2.setPower((forward - turn) * multiplier);
+    }
 
-    double lastError = 0;
-    double integral = 0;
-    double error = 0;
+    ElapsedTime PIDDriveTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+    double lastErrorDrive = 0.0;
+    double integralDrive = 0.0;
+    double errorDrive = 0.0;
 
     public void PIDDrive (double target, double left, double right, boolean runPID, long update) {
         if (runPID) {
             //probably maybe switch to getOdoAngle() cause no I2C lag plus this imu seems to drift
             //also kinda need a new hub, this one isn't very good at all
             double currentHeading = getAngle();
-            error = target - currentHeading;
-            double deltaError = error - lastError;
-            integral += error * PIDTimer.time();
+            errorDrive = target - currentHeading;
+            double deltaError = errorDrive - lastErrorDrive;
+            integralDrive += errorDrive * PIDDriveTimer.time();
             double derivative = deltaError / update;
-            PIDTimer.reset();
+            PIDDriveTimer.reset();
 
-            double P = pidConsts.p * error;
-            double I = pidConsts.i * integral;
+            double P = pidConsts.p * errorDrive;
+            double I = pidConsts.i * integralDrive;
             double D = pidConsts.d * derivative;
 
             double PID = P + I + D;
 
             setTankPowers(left + PID, right - PID); //I think
 
-            lastError = error;
+            lastErrorDrive = errorDrive;
         } else {
-            lastError = 0;
-            PIDTimer.reset();
+            lastErrorDrive = 0.0;
+            integralDrive = 0.0;
+            errorDrive = 0.0;
+            PIDDriveTimer.reset();
         }
     }
 
@@ -395,6 +554,7 @@ public class Robot {
             //      else
             //          thetaPos = (lastTheta + deltaTheta);
             //      }
+            //
             // alternate method to update angle through imu every now and then (i.e. every 500 ms) to reduce cycle time
 
             //thetaPos = lastTheta + deltaTheta;
@@ -409,6 +569,8 @@ public class Robot {
 
             xPos = Math.cos(deltaTheta) * (lastX - xCurvatureCenter) - Math.sin(deltaTheta) * (lastY - yCurvatureCenter) + xCurvatureCenter;
             yPos = Math.sin(deltaTheta) * (lastX - xCurvatureCenter) - Math.cos(deltaTheta) * (lastY - yCurvatureCenter) + yCurvatureCenter;
+            //TODO: test out odo localization
+            // if it doesn't work, we need to get started with rr unfortunately
         }
     }
 
