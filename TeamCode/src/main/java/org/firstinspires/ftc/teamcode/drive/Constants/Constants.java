@@ -10,9 +10,25 @@ import java.util.*;
 @Config
 public class Constants {
 
+    //TODO: servo positions
     public static double BOX_ROTATION_DOWN = 0.0;
     public static double BOX_ROTATION_UP = 0.0;
     public static double BOX_ROTATION_DEPLOY = 0.0;
+
+    //TODO: min and max positions to avoid going too far
+    public static double SLIDES_1_MAX = 0.0;
+    public static double SLIDES_2_MAX = 0.0;
+    public static double SLIDES_1_MIN = 0.0;
+    public static double SLIDES_2_MIN = 0.0;
+
+    public static double LINKAGE_1_MAX = 0.0;
+    public static double LINKAGE_2_MAX = 0.0;
+    public static double LINKAGE_1_MIN = 0.0;
+    public static double LINKAGE_2_MIN = 0.0;
+
+    //TODO: fix these adjustments as necessary
+    public static double LINKAGE_ADJUSTMENT = .0005;
+    public static double SLIDES_ADJUSTMENT = .05;
 
     public static double INTAKE_POWER = 0.75;
 
