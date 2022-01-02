@@ -33,7 +33,7 @@ public class Constants {
     public static double INTAKE_POWER = 0.75;
 
     public static PIDCoefficients pidConsts = new PIDCoefficients(0.0, 0.000, 0.0);
-    public static PIDCoefficients pidConstsSlides = new PIDCoefficients(0.0, 0.000, 0.0);
+    public static PIDCoefficients pidConstsSlides = new PIDCoefficients(0.0045, 0.00000000, 0.0);
     //TODO: tune PID
 
     public static double WHEEL_RADIUS = 0.0;

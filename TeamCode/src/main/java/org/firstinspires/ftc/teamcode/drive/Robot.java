@@ -89,19 +89,22 @@ public class Robot {
         slides1 = hwMap.get(DcMotorEx.class, "slides1");
         slides2 = hwMap.get(DcMotorEx.class, "slides2");
 
-        slides1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        slides2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        slides1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slides2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        slides1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         intake = hwMap.get(DcMotor.class, "intake");
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE); //this too
 
-        rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
-        leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
-
-        // TODO: reverse any encoders if needed
-        leftEncoder.setDirection(Encoder.Direction.REVERSE);
-        rightEncoder.setDirection(Encoder.Direction.REVERSE);
+//        rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
+//        leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
+//
+//        // TODO: reverse any encoders if needed
+//        leftEncoder.setDirection(Encoder.Direction.REVERSE);
+//        rightEncoder.setDirection(Encoder.Direction.REVERSE);
 
         boxServo = hwMap.get(Servo.class, "boxServo");
         carousel1 = hwMap.get(CRServoImplEx.class, "carousel1");
@@ -123,9 +126,8 @@ public class Robot {
 
         composeTelemetry();
 
-        //TODO: maybe set to manual
         for (LynxModule module : hwMap.getAll(LynxModule.class)) {
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
         List<DcMotor> motors = Arrays.asList(frontLeft, backLeft, frontRight, backRight, intake); //etc.etc.
@@ -141,6 +143,8 @@ public class Robot {
             motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
             motor.setMotorType(motorConfigurationType);
         }
+
+        intakeState = IntakeState.OFF;
 
         telemetry.update();
         telemetry.clearAll();
@@ -333,16 +337,16 @@ public class Robot {
         return slides2.getCurrentPosition();
     }
 
-    ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
-    double errorSlides1 = 0.0;
+    public double errorSlides1 = 0.0;
     double errorSlides2 = 0.0;
     double lastErrorSlides1 = 0.0;
     double lastErrorSlides2 = 0.0;
     double integralSlides1 = 0.0;
     double integralSlides2 = 0.0;
 
-    public void linearSlidesPID(double position, long update, boolean runPID) {
+    public void linearSlidesPID(double position, double update, boolean runPID) {
         if (runPID) {
             errorSlides1 = position - getSlides1CurrentPosition();
             errorSlides2 = position - getSlides2CurrentPosition();
@@ -373,6 +377,8 @@ public class Robot {
             double lastErrorSlides2 = 0.0;
             double integralSlides1 = 0.0;
             double integralSlides2 = 0.0;
+            slides1.setPower(0);
+            slides2.setPower(0);
             slidesTimer.reset();
         }
     }
@@ -626,4 +632,11 @@ public class Robot {
     public double getThetaDegrees() {
         return Math.toDegrees(thetaPos);
     }
+
+    public void clearCache() {
+        for (LynxModule module : hwMap.getAll(LynxModule.class)) {
+            module.clearBulkCache();
+        }
+    }
+
 }

@@ -3,13 +3,10 @@ package org.firstinspires.ftc.teamcode.drive.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import org.firstinspires.ftc.teamcode.drive.Robot;
 import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 
 import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
-import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
 @TeleOp(name = "TeleOp", group = "1")
 public class BlueTele extends LinearOpMode {
@@ -47,6 +44,7 @@ public class BlueTele extends LinearOpMode {
 
         while (opModeIsActive()) {
 
+            r.clearCache();
 
             double forward = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
@@ -87,10 +85,8 @@ public class BlueTele extends LinearOpMode {
 
 
             // gp2 left bumper -> carousel on
-            carouselRampUp = gamepad2.left_bumper;
-
-            if (carouselRampUp)
-                carouselPower += .005;
+            if (gamepad2.left_bumper)
+                carouselPower = 1;
             else
                 carouselPower = 0;
 
@@ -115,8 +111,14 @@ public class BlueTele extends LinearOpMode {
                 r.intakeOff();
 
 
-
             r.updateAllStates(); //state machine stuff
+
+            telemetry.addData("gamepad forward",gamepad1.left_stick_y);
+            telemetry.addData("gamepad turn", gamepad1.right_stick_x);
+            //for motor direction debugging
+
+            telemetry.addData("slides1", r.slides1.getCurrentPosition());
+            telemetry.addData("slides2", r.slides2.getCurrentPosition());
 
             telemetry.update();
             gamepadListener1.update();

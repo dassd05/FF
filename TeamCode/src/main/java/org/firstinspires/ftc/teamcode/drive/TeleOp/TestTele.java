@@ -2,53 +2,30 @@ package org.firstinspires.ftc.teamcode.drive.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.Robot;
 import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 
-import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
-import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@TeleOp(name = "Test TeleOp", group = "1")
+@TeleOp(name = "TestTele", group = "1")
 public class TestTele extends LinearOpMode {
 
+    Robot r = new Robot(); //instantiate Robot object
+
+    boolean runThouPID = true;
+
     boolean intakeOn = false;
-    boolean carouselRampUp = false;
+    boolean carouselOn = false;
 
-    double carouselPower = 0.0;
-
-    public DcMotor Left1, Left2, Right1, Right2;
-
-    public DcMotor intake;
-
-    public CRServoImplEx carousel1;
+    double target = 450;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        Left1 = hardwareMap.get(DcMotor.class, "frontLeft");
-        Left2 = hardwareMap.get(DcMotor.class, "backLeft");
-        Right1 = hardwareMap.get(DcMotor.class, "frontRight");
-        Right2 = hardwareMap.get(DcMotor.class, "backRight");
-
-        Left1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        Left2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        Right1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        Right2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        Right1.setDirection(DcMotorSimple.Direction.REVERSE);
-        Left1.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        intake = hardwareMap.get(DcMotor.class, "intake");
-
-        carousel1 = hardwareMap.get(CRServoImplEx.class, "carousel1");
+        r.telemetry = telemetry;
+        r.init(hardwareMap);
 
         GamepadListenerEx gamepadListener1 = new GamepadListenerEx(gamepad1) {
             @Override
@@ -63,59 +40,85 @@ public class TestTele extends LinearOpMode {
                 super.onButtonPress(button);
                 if (button == Button.right_bumper)
                     intakeOn = !intakeOn;
+                if (button == Button.left_bumper)
+                    carouselOn = !carouselOn;
             }
         };
 
         waitForStart();
 
-        while (opModeIsActive()) {
+        if (opModeIsActive()) {
 
-            double forward = gamepad1.left_stick_y;
-            double turn = gamepad1.right_stick_x;
+            r.slidesTimer.reset();
 
-            // left bumper -> slow down drive
-            if (gamepad1.left_bumper)
-                setTankPowers(forward, turn, 0.3);
-            else
-                setTankPowers(forward, turn, 1.0);
+            while (opModeIsActive()) {
 
+                r.clearCache();
 
-            // gp2 right bumper -> on/off intake
-            // right trigger hold -> reverse power
-            if (intakeOn)
-                if (gamepad2.right_trigger > 0.5) //works since you don't have to hold right bumper
-                    intake.setPower(-INTAKE_POWER);
+                double forward = -gamepad1.left_stick_y;
+                double turn = gamepad1.right_stick_x;
+
+                // left bumper -> slow down drive
+                if (gamepad1.left_bumper)
+                    r.setTankPowers(forward, turn, 0.3);
                 else
-                    intake.setPower(INTAKE_POWER);
-            else
-                intake.setPower(0.0);
+                    r.setTankPowers(forward, turn, 1.0);
 
 
-            carouselRampUp = gamepad2.left_bumper;
+                // right trigger hold -> reverse carousel direction
+                if (carouselOn) {
+                    if (gamepad2.right_trigger > 0.5) {
+                        r.carousel1.setPower(-1);
+                        r.carousel2.setPower(1);
+                    } else {
+                        r.carousel1.setPower(1);
+                        r.carousel2.setPower(-1);
+                    }
+                } else {
+                    r.carousel1.setPower(0);
+                    r.carousel2.setPower(0);
+                }
 
-            if (carouselRampUp)
-                carouselPower += .005;
-            else
-                carouselPower = 0;
 
-            // right trigger hold -> reverse carousel direction
-            if (gamepad2.right_trigger > 0.5)
-                carousel1.setPower(-carouselPower);
-             else
-                carousel1.setPower(carouselPower);
+                // gp2 right bumper -> on/off intake
+                // right trigger hold -> reverse power
+                if (intakeOn)
+                    if (gamepad2.right_trigger > 0.5) //works since you don't have to hold right bumper
+                        r.intakeReverse();
+                    else
+                        r.intakeOn();
+                else
+                    r.intakeOff();
+
+                r.slides1.setPower(.5);
+                r.slides2.setPower(.5);
 
 
-            telemetry.update();
-            gamepadListener1.update();
-            gamepadListener2.update();
+//                if (Math.abs(r.getSlides1CurrentPosition() - target) < 20 || Math.abs(r.getSlides2CurrentPosition() - target) < 20) {
+//                    r.slides1.setVelocity(0);
+//                    r.slides2.setVelocity(0);
+//                }
+//                else {
+//                    r.slides1.setVelocity(400);
+//                    r.slides2.setVelocity(400);
+//                }
+
+                //r.linearSlidesPID(target, r.slidesTimer.time(), runThouPID);
+
+
+
+                r.updateIntakeState(); //state machine stuff
+
+                telemetry.addData("slides error", r.errorSlides1);
+                //for motor direction debugging
+
+                telemetry.addData("slides1", r.slides1.getCurrentPosition());
+                telemetry.addData("slides2", r.slides2.getCurrentPosition());
+
+                telemetry.update();
+                gamepadListener1.update();
+                gamepadListener2.update();
+            }
         }
     }
-
-    public void setTankPowers(double forward, double turn, double multiplier) {
-        Left1.setPower((forward + turn) * multiplier);
-        Left2.setPower((forward + turn) * multiplier);
-        Right1.setPower((forward - turn) * multiplier);
-        Right2.setPower((forward - turn) * multiplier);
-    }
-
 }
