@@ -16,19 +16,27 @@ public class Constants {
     public static double BOX_ROTATION_DEPLOY = 0.0;
 
     //TODO: min and max positions to avoid going too far
-    public static double SLIDES_1_MAX = 0.0;
-    public static double SLIDES_2_MAX = 0.0;
-    public static double SLIDES_1_MIN = 0.0;
-    public static double SLIDES_2_MIN = 0.0;
+    public static double SLIDES_MAX = 1500;
+    public static double SLIDES_MIN = 0;
 
     public static double LINKAGE_1_MAX = 0.0;
     public static double LINKAGE_2_MAX = 0.0;
-    public static double LINKAGE_1_MIN = 0.0;
-    public static double LINKAGE_2_MIN = 0.0;
+
+    //TODO: adjust to driver preference
+    public static long FAST_COOL_DOWN = 25;
+    public static long NORMAL_COOL_DOWN = 125;
+
+
+    public static int TOP = 1000;
+    public static int MID = 530;
+    public static int LOW = 137;
+
+    //tune
+    public static double LINKAGE_SAFE_DROP = 0.0;
 
     //TODO: fix these adjustments as necessary
     public static double LINKAGE_ADJUSTMENT = .0005;
-    public static double SLIDES_ADJUSTMENT = .05;
+    public static int SLIDES_ADJUSTMENT = 5;
 
     public static double INTAKE_POWER = 0.75;
 

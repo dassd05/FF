@@ -145,6 +145,8 @@ public class Robot {
         }
 
         intakeState = IntakeState.OFF;
+        deploymentState = deployState.REST;
+        boxState = BoxState.COLLECT;
 
         telemetry.update();
         telemetry.clearAll();
@@ -173,7 +175,7 @@ public class Robot {
     }
 
     public enum deployState {
-        DOWN,
+        REST,
         MIDDLE,
         TOP,
         SHARED,
@@ -181,26 +183,60 @@ public class Robot {
 
     public deployState deploymentState;
 
-    public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public enum drop {
+        DROP,
+        FINAL
+    }
 
-    public boolean resetTimer = true;
-    public boolean isPositionReached = false;
+    public drop dropState;
 
-    boolean doPIDStuffSlides = false;
-    double desiredSlidesPosition = 0.0;
+    public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+    public int desiredSlidesPosition = 0;
+    public double power = 0.0;
 
     public void updateDeployState() {
         switch (deploymentState) {
-            case DOWN:
+            case REST:
+                resetSlidesAdjustment();
+                resetLinkageAdjustment();
+
+                switch (dropState) {
+                    case DROP:
+                        if (linkage1.getPosition() < LINKAGE_SAFE_DROP) {
+                            if (slides1.getCurrentPosition() > 35) {
+                                desiredSlidesPosition = 35;
+                                power = .85;
+                            } else {
+                                safeDropTimer.reset();
+                                dropState = drop.FINAL;
+                            }
+                        }
+                        break;
+
+                    case FINAL:
+                        if (safeDropTimer.time() > 250) {
+                            desiredSlidesPosition = 0;
+                            power = .3;
+                        }
+                        break;
+                }
+
                 break;
 
             case MIDDLE:
+                desiredSlidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .8;
                 break;
 
             case TOP:
+                desiredSlidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .85;
                 break;
 
             case SHARED:
+                desiredSlidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .8;
                 break;
 
             default:
@@ -208,24 +244,29 @@ public class Robot {
     }
 
 
-    public void deployUp() {
-        deploymentState = deployState.DOWN;
-        deployTimer.reset();
+    public void deployRest() {
+        deploymentState = deployState.REST;
+        dropState = drop.DROP;
     }
 
     public void deployMiddle() {
         deploymentState = deployState.MIDDLE;
-        deployTimer.reset();
     }
 
     public void deployTop() {
         deploymentState = deployState.TOP;
-        deployTimer.reset();
     }
 
     public void deployShared() {
         deploymentState = deployState.SHARED;
-        deployTimer.reset();
+    }
+
+    public void moveSlides(int targetPosition, double power) {
+        slides1.setTargetPosition(targetPosition);
+        slides1.setPower(power);
+
+        slides2.setTargetPosition(targetPosition);
+        slides2.setPower(power);
     }
 
     public enum IntakeState {
@@ -318,14 +359,14 @@ public class Robot {
         linkageAdjustment = 0.0;
     }
 
-    public double slidesAdjustment = 0.0;
+    public int slidesAdjustment = 0;
 
-    public void slidesAdjust(double adjust) {
+    public void slidesAdjust(int adjust) {
         slidesAdjustment += adjust;
     }
 
     public void resetSlidesAdjustment() {
-        slidesAdjustment = 0.0;
+        slidesAdjustment = 0;
     }
 
 
@@ -346,6 +387,7 @@ public class Robot {
     double integralSlides1 = 0.0;
     double integralSlides2 = 0.0;
 
+    //rip not using
     public void linearSlidesPID(double position, double update, boolean runPID) {
         if (runPID) {
             errorSlides1 = position - getSlides1CurrentPosition();

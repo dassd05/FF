@@ -13,19 +13,14 @@ import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 @TeleOp(name = "WhyIsntThisWorking", group = "1")
 public class WhyIsntThisWorking extends LinearOpMode {
 
-    public DcMotorEx slides1, slides2;
+    public DcMotor slides1, slides2;
+    public DcMotor intake;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        slides1 = hardwareMap.get(DcMotorEx.class, "slides1");
-        slides2 = hardwareMap.get(DcMotorEx.class, "slides2");
-
-        slides1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slides2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        slides1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slides1 = hardwareMap.get(DcMotor.class, "slides1");
+        slides2 = hardwareMap.get(DcMotor.class, "slides2");
 
         waitForStart();
 

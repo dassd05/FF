@@ -2,21 +2,23 @@ package org.firstinspires.ftc.teamcode.drive.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.Robot;
 import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 
 import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
 @TeleOp(name = "TeleOp", group = "1")
 public class BlueTele extends LinearOpMode {
 
     Robot r = new Robot(); //instantiate Robot object
 
-    boolean intakeOn = false;
-    boolean carouselRampUp = false;
+    public ElapsedTime buttonCoolDown = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
-    double carouselPower = 0.0;
+    boolean intakeOn = false;
+    boolean carouselOn = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -37,10 +39,30 @@ public class BlueTele extends LinearOpMode {
                 super.onButtonPress(button);
                 if (button == Button.right_bumper)
                     intakeOn = !intakeOn;
+                if (button == Button.left_bumper)
+                    carouselOn = !carouselOn;
+
+                //TODO: adjust to driver preference
+                if (button == Button.dpad_up && r.deploymentState == deployState.REST)
+                    r.deployTop();
+                if (button == Button.dpad_up && r.deploymentState == deployState.MIDDLE)
+                    r.deployTop();
+                if (button == Button.dpad_up && r.deploymentState == deployState.SHARED)
+                    r.deployMiddle();
+
+                if (button == Button.dpad_down && r.deploymentState != deployState.REST)
+                    r.deployRest();
+                else if (button == Button.dpad_down)
+                    r.deployShared();
+
+                if (button == Button.dpad_left || button == Button.dpad_right)
+                    r.deployMiddle();
             }
         };
 
         waitForStart();
+
+        buttonCoolDown.reset();
 
         while (opModeIsActive()) {
 
@@ -55,48 +77,33 @@ public class BlueTele extends LinearOpMode {
             else
                 r.setTankPowers(forward, turn, 1.0);
 
-
-            //TODO: all the deploy state stuff
-
             // right bumper -> zoom zoom adjustment
             // up and down -> vertical slides adjust
             // right -> horizontal extends out of robot
             // left -> horizontal extends into robot
             if (gamepad1.right_bumper) {
-                if (gamepad1.dpad_right)
-                    r.linkageAdjust(LINKAGE_ADJUSTMENT * 5);
-                if (gamepad1.dpad_left)
-                    r.linkageAdjust(-LINKAGE_ADJUSTMENT * 5);
-                if (gamepad1.dpad_up)
-                    r.slidesAdjust(SLIDES_ADJUSTMENT * 5);
-                if (gamepad1.dpad_down)
-                    r.slidesAdjust(-SLIDES_ADJUSTMENT * 5);
+                if (buttonCoolDown.time() >= FAST_COOL_DOWN)
+                    adjustStuff();
             } else {
-                if (gamepad1.dpad_right)
-                    r.linkageAdjust(LINKAGE_ADJUSTMENT);
-                if (gamepad1.dpad_left)
-                    r.linkageAdjust(-LINKAGE_ADJUSTMENT);
-                if (gamepad1.dpad_up)
-                    r.slidesAdjust(SLIDES_ADJUSTMENT);
-                if (gamepad1.dpad_down)
-                    r.slidesAdjust(-SLIDES_ADJUSTMENT);
+                if (buttonCoolDown.time() >= NORMAL_COOL_DOWN)
+                    adjustStuff();
             }
 
+            r.moveSlides(r.desiredSlidesPosition, r.power);
 
 
             // gp2 left bumper -> carousel on
-            if (gamepad2.left_bumper)
-                carouselPower = 1;
-            else
-                carouselPower = 0;
-
-            // right trigger hold -> reverse carousel direction
-            if (gamepad2.right_trigger > 0.5) {
-                r.carousel1.setPower(-carouselPower);
-                r.carousel2.setPower(-carouselPower);
+            if (carouselOn) {
+                if (gamepad2.right_trigger > 0.5) {
+                    r.carousel1.setPower(-1);
+                    r.carousel2.setPower(1);
+                } else {
+                    r.carousel1.setPower(1);
+                    r.carousel2.setPower(-1);
+                }
             } else {
-                r.carousel1.setPower(carouselPower);
-                r.carousel2.setPower(carouselPower);
+                r.carousel1.setPower(0);
+                r.carousel2.setPower(0);
             }
 
 
@@ -113,16 +120,22 @@ public class BlueTele extends LinearOpMode {
 
             r.updateAllStates(); //state machine stuff
 
-            telemetry.addData("gamepad forward",gamepad1.left_stick_y);
-            telemetry.addData("gamepad turn", gamepad1.right_stick_x);
-            //for motor direction debugging
-
-            telemetry.addData("slides1", r.slides1.getCurrentPosition());
-            telemetry.addData("slides2", r.slides2.getCurrentPosition());
-
             telemetry.update();
             gamepadListener1.update();
             gamepadListener2.update();
         }
+    }
+
+    public void adjustStuff() {
+        if (gamepad1.dpad_right)
+            r.linkageAdjust(LINKAGE_ADJUSTMENT);
+        if (gamepad1.dpad_left)
+            r.linkageAdjust(-LINKAGE_ADJUSTMENT);
+        if (gamepad1.dpad_up)
+            r.slidesAdjust(SLIDES_ADJUSTMENT);
+        if (gamepad1.dpad_down)
+            r.slidesAdjust(-SLIDES_ADJUSTMENT);
+
+        buttonCoolDown.reset();
     }
 }
