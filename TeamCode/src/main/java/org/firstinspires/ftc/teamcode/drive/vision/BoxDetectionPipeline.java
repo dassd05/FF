@@ -84,8 +84,7 @@ public class BoxDetectionPipeline extends OpenCvPipeline {
                 BLUE,
                 2);
 
-        int greater1or2 = Math.max(avg1, avg2);
-        int greatest = Math.max(greater1or2, avg3);
+        int greatest = Math.max(Math.max(avg1, avg2), avg3);
 
         if (greatest == avg1) {
             position = BoxPosition.LEFT;

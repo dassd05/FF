@@ -5,17 +5,10 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -24,13 +17,25 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 import org.openftc.easyopencv.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
 
+/**
+ * Robot is a class which contains all the functions of the robot.
+ *
+ * <p>To use this class, first call the constructor with your {@link HardwareMap} and
+ * {@link Telemetry}. During the initialization phase, call the desired init functions of Robot.
+ * You may thereafter call the functions of the Robot as desired.</p>
+ */
 @SuppressWarnings("unused")
 public class Robot {
+
+    //----------------------------------------------------------------------------------------------
+    // Robot State
+    //----------------------------------------------------------------------------------------------
 
     public static LeftBlue LeftBlueState;
     public static MiddleBlue MiddleBlueState;
@@ -42,7 +47,13 @@ public class Robot {
     public static MiddleRed MiddleRedState;
     public static RightRed RightRedState;
 
+    //----------------------------------------------------------------------------------------------
+    // Parameters
+    //----------------------------------------------------------------------------------------------
 
+    /**
+     * position variables for the robot
+     */
     public double xPos, yPos, thetaPos;
 
     public DcMotor frontLeft, backLeft, frontRight, backRight;
@@ -56,6 +67,7 @@ public class Robot {
     public WebcamName webcamName;
     public OpenCvWebcam webcam;
 
+    public HardwareMap hardwareMap;
     public Telemetry telemetry;
     public FtcDashboard dashboard;
 
@@ -70,9 +82,8 @@ public class Robot {
     public int slidesAdjustment = 0;
     public ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public double errorSlides1 = 0.0;
-//    public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    //    public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime odoTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    public HardwareMap hardwareMap;
     double errorSlides2 = 0.0;
 
     //public ElapsedTime boxTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -82,7 +93,7 @@ public class Robot {
     double integralSlides1 = 0.0;
     double integralSlides2 = 0.0;
 
-//    public enum TeamShippingElementState {
+    //    public enum TeamShippingElementState {
 //
 //    }
     ElapsedTime PIDDriveTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -90,15 +101,30 @@ public class Robot {
     double integralDrive = 0.0;
     double errorDrive = 0.0;
 
+    //----------------------------------------------------------------------------------------------
+    // Initialization
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Constructor for the {@link Robot} class. <i>Does not do the initialization!</i>
+     *
+     * @param hardwareMap the hardwareMap you get from {@link com.qualcomm.robotcore.eventloop.opmode.OpMode}
+     * @param telemetry   the telemetry you get from {@link com.qualcomm.robotcore.eventloop.opmode.OpMode}
+     * @see #init()
+     * @see #webcamInit(OpenCvPipeline)
+     * @see #dashboardInit()
+     */
     public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
         this.hardwareMap = hardwareMap;
         this.telemetry = telemetry;
     }
 
-    public static double encoderTicksToInches(double ticks) {
-        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
-    }
-
+    /**
+     * Initialize most of the hardware for the robot.
+     *
+     * @see #webcamInit(OpenCvPipeline)
+     * @see #dashboardInit()
+     */
     public void init() {
         //TODO: hardware mappings
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -140,6 +166,7 @@ public class Robot {
         linkage1 = hardwareMap.get(Servo.class, "linkage1");
         linkage2 = hardwareMap.get(Servo.class, "linkage2");
 
+        //noinspection DuplicatedCode
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
@@ -177,6 +204,13 @@ public class Robot {
         telemetry.clearAll();
     }
 
+    /**
+     * Initializes the {@link OpenCvWebcam} for the robot.
+     *
+     * @param pipeline the pipeline to set for the webcam
+     * @see #init()
+     * @see #dashboardInit()
+     */
     public void webcamInit(OpenCvPipeline pipeline) {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().
                 getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -196,11 +230,133 @@ public class Robot {
         });
     }
 
+    /**
+     * Initializes an {@link FtcDashboard} for the robot, as well as the telemetry for the dashboard.
+     *
+     * @see #init()
+     * @see #webcamInit(OpenCvPipeline)
+     */
     public void dashboardInit() {
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Updating State
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Put the deployment in the resting state.
+     *
+     * @see #deployMiddle()
+     * @see #deployTop()
+     * @see #deployShared()
+     */
+    public void deployRest() {
+        deploymentState = DeployState.REST;
+        dropState = DropState.DROP;
+    }
+
+    /**
+     * Move the deployment into the position for the middle rack of the alliance shipping hub.
+     *
+     * @see #deployRest()
+     * @see #deployTop()
+     * @see #deployShared()
+     */
+    public void deployMiddle() {
+        deploymentState = DeployState.MIDDLE;
+    }
+
+    /**
+     * Move the deployment into the position for the top rack of the alliance shipping hub.
+     *
+     * @see #deployRest()
+     * @see #deployMiddle()
+     * @see #deployShared()
+     */
+    public void deployTop() {
+        deploymentState = DeployState.TOP;
+    }
+
+    /**
+     * Move the deployment into the position for the shared shipping hub.
+     *
+     * @see #deployRest()
+     * @see #deployMiddle()
+     * @see #deployTop()
+     */
+    public void deployShared() {
+        deploymentState = DeployState.SHARED;
+    }
+
+    /**
+     * Turn the intake on.
+     *
+     * @see #intakeOff()
+     * @see #intakeReverse()
+     */
+    public void intakeOn() {
+        intakeState = IntakeState.ON;
+    }
+
+    /**
+     * Turn the intake off.
+     *
+     * @see #intakeOn()
+     * @see #intakeReverse()
+     */
+    public void intakeOff() {
+        intakeState = IntakeState.OFF;
+    }
+
+    /**
+     * Make the intake rotate in the reverse direction
+     *
+     * @see #intakeOn()
+     * @see #intakeOff()
+     */
+    public void intakeReverse() {
+        intakeState = IntakeState.REVERSE;
+    }
+
+    /**
+     * Rotate the box into the drop-off state.
+     *
+     * @see #liftBox()
+     * @see #collectBox()
+     */
+    public void dropoffBox() {
+        boxState = BoxState.DROP;
+    }
+
+    /**
+     * Rotate the box into an upwards state.
+     *
+     * @see #dropoffBox()
+     * @see #collectBox()
+     */
+    public void liftBox() {
+        boxState = BoxState.UP;
+    }
+
+    /**
+     * Rotate the box into position for intaking.
+     *
+     * @see #dropoffBox()
+     * @see #liftBox()
+     */
+    public void collectBox() {
+        boxState = BoxState.COLLECT;
+    }
+
+    /**
+     * Update the deployment FSM.
+     *
+     * @see #updateIntakeState()
+     * @see #updateBoxState()
+     * @see #updateAllStates()
+     */
     public void updateDeployState() {
         switch (deploymentState) {
             case REST:
@@ -249,31 +405,13 @@ public class Robot {
         }
     }
 
-    public void deployRest() {
-        deploymentState = DeployState.REST;
-        dropState = DropState.DROP;
-    }
-
-    public void deployMiddle() {
-        deploymentState = DeployState.MIDDLE;
-    }
-
-    public void deployTop() {
-        deploymentState = DeployState.TOP;
-    }
-
-    public void deployShared() {
-        deploymentState = DeployState.SHARED;
-    }
-
-    public void moveSlides(int targetPosition, double power) {
-        slides1.setTargetPosition(targetPosition);
-        slides1.setPower(power);
-
-        slides2.setTargetPosition(targetPosition);
-        slides2.setPower(power);
-    }
-
+    /**
+     * Update the intake FSM.
+     *
+     * @see #updateDeployState()
+     * @see #updateBoxState()
+     * @see #updateAllStates()
+     */
     public void updateIntakeState() {
         switch (intakeState) {
             case ON:
@@ -290,18 +428,13 @@ public class Robot {
         }
     }
 
-    public void intakeOn() {
-        intakeState = IntakeState.ON;
-    }
-
-    public void intakeOff() {
-        intakeState = IntakeState.OFF;
-    }
-
-    public void intakeReverse() {
-        intakeState = IntakeState.REVERSE;
-    }
-
+    /**
+     * Update the box FSM.
+     *
+     * @see #updateDeployState()
+     * @see #updateIntakeState()
+     * @see #updateAllStates()
+     */
     public void updateBoxState() {
         switch (boxState) {
             case DROP:
@@ -313,36 +446,67 @@ public class Robot {
         }
     }
 
-    public void dropoffBox() {
-        boxState = BoxState.DROP;
-    }
-
-    public void liftBox() {
-        boxState = BoxState.UP;
-    }
-
-    public void collectBox() {
-        boxState = BoxState.COLLECT;
-    }
-
+    /**
+     * Update all FSMs on the robot.
+     *
+     * @see #updateDeployState()
+     * @see #updateIntakeState()
+     * @see #updateBoxState()
+     */
     public void updateAllStates() {
         updateDeployState();
         updateIntakeState();
         updateBoxState();
     }
 
+    /**
+     * Moves the slides to a target position at a particular power.
+     *
+     * @param targetPosition the desired encoder target position for the slides motor
+     * @param power          the power to set the motors to
+     */
+    public void moveSlides(int targetPosition, double power) {
+        slides1.setTargetPosition(targetPosition);
+        slides1.setPower(power);
+
+        slides2.setTargetPosition(targetPosition);
+        slides2.setPower(power);
+    }
+
+    /**
+     * Adjust the linkage by a particular amount.
+     *
+     * @param adjust
+     * @see #resetLinkageAdjustment()
+     */
     public void linkageAdjust(double adjust) {
         linkageAdjustment += adjust;
     }
 
+    /**
+     * Reset the linkage's adjustment.
+     *
+     * @see #linkageAdjust(double)
+     */
     public void resetLinkageAdjustment() {
         linkageAdjustment = 0.0;
     }
 
+    /**
+     * Adjust the slides by a particular amount.
+     *
+     * @param adjust
+     * @see #resetSlidesAdjustment()
+     */
     public void slidesAdjust(int adjust) {
         slidesAdjustment += adjust;
     }
 
+    /**
+     * Reset the slides' adjustment.
+     *
+     * @see #slidesAdjust(int)
+     */
     public void resetSlidesAdjustment() {
         slidesAdjustment = 0;
     }
@@ -356,6 +520,7 @@ public class Robot {
     }
 
     //rip not using
+    @Deprecated
     public void linearSlidesPID(double position, double update, boolean runPID) {
         if (runPID) {
             errorSlides1 = position - getSlides1CurrentPosition();
@@ -393,6 +558,11 @@ public class Robot {
         }
     }
 
+    /**
+     * Get the heading of the robot, according to imu.
+     *
+     * @return the heading of the robot, in radians
+     */
     public double getAngle() {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
         //might want to experiment with extrinsic, but Im not sure if it will actually reduce drift
@@ -405,6 +575,13 @@ public class Robot {
             return -getThetaDegrees(); //we switch the signs cause odo returns increasing angle counter clockwise
     }
 
+    /**
+     * Set motor powers for a tank drive, where you can control the speed of the left and right
+     * side of the drivetrain.
+     *
+     * @param left  number in the range [-1, 1] representing the velocity to set the left side to
+     * @param right number in the range [-1, 1] representing the velocity to set the right side to
+     */
     public void setTankPowers(double left, double right) {
         frontLeft.setPower(left);
         backLeft.setPower(left);
@@ -412,6 +589,17 @@ public class Robot {
         backRight.setPower(right);
     }
 
+    /**
+     * Set motor powers for a tank drive, where you can control the forward velocity (relative to
+     * the robot) and rotational speed. You can also add a multiplier to adjust the sensitivity.
+     *
+     * @param forward    number in the range [-1, 1] representing the relative forward velocity
+     * @param turn       number in the range [-1, 1] representing the velocity to set the left side to,
+     *                   with positive representing clockwise motion and negative representing
+     *                   counterclockwise motion.
+     * @param multiplier <i><b>PROBABLY SHOULD GET RID OF, SINCE WE CAN DO IT MANUALLY
+     *                   OUTSIDE OF THE FUNCTION.</b></i>
+     */
     public void setTankPowers(double forward, double turn, double multiplier) {
         frontLeft.setPower((forward + turn) * multiplier);
         backLeft.setPower((forward + turn) * multiplier);
@@ -558,10 +746,23 @@ public class Robot {
         return Math.toDegrees(thetaPos);
     }
 
+    /**
+     * Clear the bulk cache for each {@link LynxModule} in the robot.
+     */
     public void clearCache() {
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.clearBulkCache();
         }
+    }
+
+    /**
+     * Converts ticks on the encoder to inches.
+     *
+     * @param ticks number of encoder ticks
+     * @return converted distance in inches
+     */
+    public static double encoderTicksToInches(double ticks) {
+        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
     }
 
     public enum DeployState {
@@ -581,6 +782,7 @@ public class Robot {
         REVERSE,
         ON
     }
+
     public enum BoxState {
         COLLECT,
         UP,
@@ -590,6 +792,7 @@ public class Robot {
     public enum LeftBlue {
 
     }
+
     public enum MiddleBlue {
 
     }
@@ -606,12 +809,15 @@ public class Robot {
     public enum MiddleBlue2 {
 
     }
+
     public enum RightBlue2 {
 
     }
+
     public enum LeftRed {
 
     }
+
     public enum MiddleRed {
 
     }
