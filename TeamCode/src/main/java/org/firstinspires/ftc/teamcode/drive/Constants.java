@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Constants;
+package org.firstinspires.ftc.teamcode.drive;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
@@ -19,7 +19,9 @@ public class Constants {
     public static double SLIDES_MAX = 1500;
     public static double SLIDES_MIN = 0;
 
-    public static double LINKAGE_1_MAX = 0.0;
+    public static double LINKAGE_1_MIN = 0.0;
+    public static double LINKAGE_1_MAX = 1.0;
+    public static double LINKAGE_2_MIN = 0.0;
     public static double LINKAGE_2_MAX = 0.0;
 
     //TODO: adjust to driver preference

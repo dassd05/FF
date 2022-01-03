@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Autons;
+package org.firstinspires.ftc.teamcode.drive.auton;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 

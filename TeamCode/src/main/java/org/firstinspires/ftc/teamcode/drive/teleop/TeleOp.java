@@ -1,30 +1,24 @@
-package org.firstinspires.ftc.teamcode.drive.TeleOp;
+package org.firstinspires.ftc.teamcode.drive.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.drive.Constants;
+import org.firstinspires.ftc.teamcode.drive.gamepad.GamepadListenerEx;
 import org.firstinspires.ftc.teamcode.drive.Robot;
-import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 
-import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
-import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@TeleOp(name = "TeleOp", group = "1")
-public class BlueTele extends LinearOpMode {
-
-    Robot r = new Robot(); //instantiate Robot object
+public class TeleOp extends LinearOpMode {
+    public Robot robot = new Robot(hardwareMap, telemetry);
 
     public ElapsedTime buttonCoolDown = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-
-    boolean intakeOn = false;
-    boolean carouselOn = false;
+    public boolean intakeOn = false;
+    public boolean carouselOn = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
-
-        r.telemetry = telemetry;
-        r.init(hardwareMap);
+        robot.init();
+        robot.dashboardInit();
 
         GamepadListenerEx gamepadListener1 = new GamepadListenerEx(gamepad1) {
             @Override
@@ -43,20 +37,20 @@ public class BlueTele extends LinearOpMode {
                     carouselOn = !carouselOn;
 
                 //TODO: adjust to driver preference
-                if (button == Button.dpad_up && r.deploymentState == deployState.REST)
-                    r.deployTop();
-                if (button == Button.dpad_up && r.deploymentState == deployState.MIDDLE)
-                    r.deployTop();
-                if (button == Button.dpad_up && r.deploymentState == deployState.SHARED)
-                    r.deployMiddle();
+                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.REST)
+                    robot.deployTop();
+                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.MIDDLE)
+                    robot.deployTop();
+                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.SHARED)
+                    robot.deployMiddle();
 
-                if (button == Button.dpad_down && r.deploymentState != deployState.REST)
-                    r.deployRest();
+                if (button == Button.dpad_down && robot.deploymentState != Robot.DeployState.REST)
+                    robot.deployRest();
                 else if (button == Button.dpad_down)
-                    r.deployShared();
+                    robot.deployShared();
 
                 if (button == Button.dpad_left || button == Button.dpad_right)
-                    r.deployMiddle();
+                    robot.deployMiddle();
             }
         };
 
@@ -66,44 +60,44 @@ public class BlueTele extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            r.clearCache();
+            robot.clearCache();
 
             double forward = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
 
             // left bumper -> slow down drive
             if (gamepad1.left_bumper)
-                r.setTankPowers(forward, turn, 0.3);
+                robot.setTankPowers(forward, turn, 0.3);
             else
-                r.setTankPowers(forward, turn, 1.0);
+                robot.setTankPowers(forward, turn, 1.0);
 
             // right bumper -> zoom zoom adjustment
             // up and down -> vertical slides adjust
             // right -> horizontal extends out of robot
             // left -> horizontal extends into robot
             if (gamepad1.right_bumper) {
-                if (buttonCoolDown.time() >= FAST_COOL_DOWN)
+                if (buttonCoolDown.time() >= Constants.FAST_COOL_DOWN)
                     adjustStuff();
             } else {
-                if (buttonCoolDown.time() >= NORMAL_COOL_DOWN)
+                if (buttonCoolDown.time() >= Constants.NORMAL_COOL_DOWN)
                     adjustStuff();
             }
 
-            r.moveSlides(r.desiredSlidesPosition, r.power);
+            robot.moveSlides(robot.desiredSlidesPosition, robot.slidesPower);
 
 
             // gp2 left bumper -> carousel on
             if (carouselOn) {
                 if (gamepad2.right_trigger > 0.5) {
-                    r.carousel1.setPower(-1);
-                    r.carousel2.setPower(1);
+                    robot.carousel1.setPower(-1);
+                    robot.carousel2.setPower(1);
                 } else {
-                    r.carousel1.setPower(1);
-                    r.carousel2.setPower(-1);
+                    robot.carousel1.setPower(1);
+                    robot.carousel2.setPower(-1);
                 }
             } else {
-                r.carousel1.setPower(0);
-                r.carousel2.setPower(0);
+                robot.carousel1.setPower(0);
+                robot.carousel2.setPower(0);
             }
 
 
@@ -111,14 +105,14 @@ public class BlueTele extends LinearOpMode {
             // right trigger hold -> reverse power
             if (intakeOn)
                 if (gamepad2.right_trigger > 0.5) //works since you don't have to hold right bumper
-                    r.intakeReverse();
+                    robot.intakeReverse();
                 else
-                    r.intakeOn();
+                    robot.intakeOn();
             else
-                r.intakeOff();
+                robot.intakeOff();
 
 
-            r.updateAllStates(); //state machine stuff
+            robot.updateAllStates(); //state machine stuff
 
             telemetry.update();
             gamepadListener1.update();
@@ -128,13 +122,13 @@ public class BlueTele extends LinearOpMode {
 
     public void adjustStuff() {
         if (gamepad1.dpad_right)
-            r.linkageAdjust(LINKAGE_ADJUSTMENT);
+            robot.linkageAdjust(Constants.LINKAGE_ADJUSTMENT);
         if (gamepad1.dpad_left)
-            r.linkageAdjust(-LINKAGE_ADJUSTMENT);
+            robot.linkageAdjust(-Constants.LINKAGE_ADJUSTMENT);
         if (gamepad1.dpad_up)
-            r.slidesAdjust(SLIDES_ADJUSTMENT);
+            robot.slidesAdjust(Constants.SLIDES_ADJUSTMENT);
         if (gamepad1.dpad_down)
-            r.slidesAdjust(-SLIDES_ADJUSTMENT);
+            robot.slidesAdjust(-Constants.SLIDES_ADJUSTMENT);
 
         buttonCoolDown.reset();
     }
