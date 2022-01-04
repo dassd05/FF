@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.drive.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.drive.Robot;
 import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
@@ -30,6 +31,8 @@ public class BlueTele extends LinearOpMode {
             @Override
             public void onButtonPress(Button button) {
                 super.onButtonPress(button);
+                if (button == Button.left_bumper)
+                    r.dropoffBox();
             }
         };
         //toggles intake on/off with right bumper
@@ -71,8 +74,8 @@ public class BlueTele extends LinearOpMode {
             double forward = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
 
-            // left bumper -> slow down drive
-            if (gamepad1.left_bumper)
+            // right trigger -> slow down drive
+            if (gamepad1.right_trigger > .3)
                 r.setTankPowers(forward, turn, 0.3);
             else
                 r.setTankPowers(forward, turn, 1.0);
@@ -90,6 +93,7 @@ public class BlueTele extends LinearOpMode {
             }
 
             r.moveSlides(r.desiredSlidesPosition, r.power);
+            r.moveLinkage(Range.clip(r.position + r.linkageAdjustment, 0, .9));
 
 
             // gp2 left bumper -> carousel on
@@ -119,6 +123,12 @@ public class BlueTele extends LinearOpMode {
 
 
             r.updateAllStates(); //state machine stuff
+
+            telemetry.addData("power", r.power);
+            telemetry.addData("desired slides position", r.desiredSlidesPosition);
+            telemetry.addData("slides 1 position", r.getSlides1CurrentPosition());
+            telemetry.addData("slides 2 position", r.getSlides2CurrentPosition());
+            telemetry.addData("state", r.deploymentState);
 
             telemetry.update();
             gamepadListener1.update();
