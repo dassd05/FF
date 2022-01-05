@@ -214,8 +214,7 @@ public class Robot {
                     resetLinkageAdjustment();
                 }
 
-                linkage2.setPosition(0);
-                linkage1.setPosition(1);
+                position = 0;
 
                 collectBox();
 
