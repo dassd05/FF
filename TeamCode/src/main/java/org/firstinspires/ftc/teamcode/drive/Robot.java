@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive;
 
+import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -16,9 +17,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 import org.openftc.easyopencv.*;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
@@ -54,7 +52,11 @@ public class Robot {
     /**
      * position variables for the robot
      */
-    public double xPos, yPos, thetaPos;
+    protected double xPos, yPos, thetaPos;
+
+    public HardwareMap hardwareMap;
+    public Telemetry telemetry;
+    public FtcDashboard dashboard;
 
     public DcMotor frontLeft, backLeft, frontRight, backRight;
     public DcMotor intake;
@@ -67,39 +69,35 @@ public class Robot {
     public WebcamName webcamName;
     public OpenCvWebcam webcam;
 
-    public HardwareMap hardwareMap;
-    public Telemetry telemetry;
-    public FtcDashboard dashboard;
+    protected IntakeState intakeState;
+    protected DeployState deployState;
+    protected BoxState boxState;
+    protected DropState dropState;
 
-    public DeployState deploymentState;
-    public DropState dropState;
-    public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    public int desiredSlidesPosition = 0;
-    public double slidesPower = 0.0;
-    public IntakeState intakeState;
-    public BoxState boxState;
-    public double linkageAdjustment = 0.0;
-    public int slidesAdjustment = 0;
     public ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    public double errorSlides1 = 0.0;
-    //    public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime odoTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    double errorSlides2 = 0.0;
 
-    //public ElapsedTime boxTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    //dont need it
-    double lastErrorSlides1 = 0.0;
-    double lastErrorSlides2 = 0.0;
-    double integralSlides1 = 0.0;
-    double integralSlides2 = 0.0;
+    public int slidesPosition = 0;
+    public double slidesPower = 0;
+    public double linkagePosition = 0;
+    public int slidesAdjustment = 0;
+    public double linkageAdjustment = 0;
 
-    //    public enum TeamShippingElementState {
-//
-//    }
+    public double errorSlides1 = 0;
+    public double errorSlides2 = 0;
+
+    public boolean firstTime = false;
+    double lastErrorSlides1 = 0;
+    double lastErrorSlides2 = 0;
+    double integralSlides1 = 0;
+    double integralSlides2 = 0;
+
     ElapsedTime PIDDriveTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    double lastErrorDrive = 0.0;
-    double integralDrive = 0.0;
-    double errorDrive = 0.0;
+    double lastErrorDrive = 0;
+    double integralDrive = 0;
+    double errorDrive = 0;
 
     //----------------------------------------------------------------------------------------------
     // Initialization
@@ -114,7 +112,12 @@ public class Robot {
      * @see #webcamInit(OpenCvPipeline)
      * @see #dashboardInit()
      */
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
+    public Robot(@NonNull HardwareMap hardwareMap, @NonNull Telemetry telemetry) {
+        //noinspection ConstantConditions
+        if (hardwareMap == null || telemetry == null) {
+            throw new NullPointerException("Make sure your that your hardwareMap and telemetry aren't null" +
+                    "when calling the Robot constructor. (Make sure you call the constructor during runOpMode())");
+        }
         this.hardwareMap = hardwareMap;
         this.telemetry = telemetry;
     }
@@ -188,22 +191,20 @@ public class Robot {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
-        List<DcMotor> motors = Arrays.asList(frontLeft, backLeft, frontRight, backRight, intake); //etc.etc.
-        List<DcMotorEx> motorsEx = Arrays.asList(slides1, slides2);
+//        List<DcMotor> motors = Arrays.asList(frontLeft, backLeft, frontRight, backRight, intake, slides1, slides2); //etc.etc.
+        DcMotor[] motors = {frontLeft, backLeft, frontRight, backRight, intake, slides1, slides2};
 
         for (DcMotor motor : motors) {
             MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
             motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
             motor.setMotorType(motorConfigurationType);
         }
-        for (DcMotorEx motor : motorsEx) {
-            MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
-            motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
-            motor.setMotorType(motorConfigurationType);
-        }
+
+        HardwareDevice[] hardwareDevices = {frontLeft, backLeft, frontRight, backRight, intake, slides1, slides2,
+                                            boxServo, linkage1, linkage2, carousel1, carousel2, voltageSensor};
 
         intakeState = IntakeState.OFF;
-        deploymentState = DeployState.REST;
+        deployState = DeployState.REST;
         boxState = BoxState.COLLECT;
         dropState = DropState.DROP;
 
@@ -249,6 +250,48 @@ public class Robot {
     }
 
     //----------------------------------------------------------------------------------------------
+    // Accessors
+    //----------------------------------------------------------------------------------------------
+
+    public double getX() {
+        return xPos;
+    }
+
+    public double getY() {
+        return yPos;
+    }
+
+    public double getTheta() {
+        return thetaPos;
+    }
+
+    public void setPosition(double x, double y, double theta) {
+        this.xPos = x;
+        this.yPos = y;
+        this.thetaPos = theta;
+    }
+
+    public double getThetaDegrees() {
+        return Math.toDegrees(thetaPos);
+    }
+
+    public IntakeState getIntakeState() {
+        return intakeState;
+    }
+
+    public DeployState getDeployState() {
+        return deployState;
+    }
+
+    public BoxState getBoxState() {
+        return boxState;
+    }
+
+    public DropState getDropState() {
+        return dropState;
+    }
+
+    //----------------------------------------------------------------------------------------------
     // Updating State
     //----------------------------------------------------------------------------------------------
 
@@ -260,7 +303,7 @@ public class Robot {
      * @see #deployShared()
      */
     public void deployRest() {
-        deploymentState = DeployState.REST;
+        deployState = DeployState.REST;
         dropState = DropState.DROP;
         firstTime = true;
         deployTimer.reset();
@@ -274,7 +317,7 @@ public class Robot {
      * @see #deployShared()
      */
     public void deployMiddle() {
-        deploymentState = DeployState.MIDDLE;
+        deployState = DeployState.MIDDLE;
         deployTimer.reset();
         firstTime = true;
     }
@@ -287,7 +330,7 @@ public class Robot {
      * @see #deployShared()
      */
     public void deployTop() {
-        deploymentState = DeployState.TOP;
+        deployState = DeployState.TOP;
         deployTimer.reset();
         firstTime = true;
     }
@@ -300,7 +343,7 @@ public class Robot {
      * @see #deployTop()
      */
     public void deployShared() {
-        deploymentState = DeployState.SHARED;
+        deployState = DeployState.SHARED;
         deployTimer.reset();
         firstTime = true;
     }
@@ -365,14 +408,6 @@ public class Robot {
         boxState = BoxState.COLLECT;
     }
 
-
-    //todo clean this up
-    public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-//    public double power = 0.0;
-    public double position = 0.0;
-
-    boolean firstTime = false;
-
     /**
      * Update the deployment FSM.
      *
@@ -381,14 +416,14 @@ public class Robot {
      * @see #updateAllStates()
      */
     public void updateDeployState() {
-        switch (deploymentState) {
+        switch (deployState) {
             case REST:
                 if (firstTime) {
                     resetSlidesAdjustment();
                     resetLinkageAdjustment();
                 }
 
-                position = 0;
+                linkagePosition = 0;
 
                 collectBox();
 
@@ -397,7 +432,7 @@ public class Robot {
                         if (deployTimer.time() > ROTATE_TIME) {
                             if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
                                 if (slides1.getCurrentPosition() > 35) {
-                                    desiredSlidesPosition = 35;
+                                    slidesPosition = 35;
                                     slidesPower = .85;
                                 } else {
                                     safeDropTimer.reset();
@@ -409,7 +444,7 @@ public class Robot {
 
                     case FINAL:
                         if (safeDropTimer.time() > 250) {
-                            desiredSlidesPosition = 0;
+                            slidesPosition = 0;
                             slidesPower = .3;
                         }
                         break;
@@ -424,11 +459,11 @@ public class Robot {
                 }
 
                 if (deployTimer.time() > ROTATE_TIME) {
-                    desiredSlidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
                     slidesPower = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                        linkagePosition = .4;
                 }
                 break;
 
@@ -439,11 +474,11 @@ public class Robot {
                 }
 
                 if (deployTimer.time() > ROTATE_TIME) {
-                    desiredSlidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
                     slidesPower = .85;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                        linkagePosition = .4;
                 }
                 break;
 
@@ -454,21 +489,16 @@ public class Robot {
                 }
 
                 if (deployTimer.time() > ROTATE_TIME) {
-                    desiredSlidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
                     slidesPower = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                        linkagePosition = .4;
                 }
                 break;
 
             default:
         }
-    }
-
-    public void moveLinkage(double targetPosition) {
-        linkage2.setPosition(targetPosition);
-        linkage1.setPosition(1-targetPosition);
     }
 
     /**
@@ -528,6 +558,28 @@ public class Robot {
         updateBoxState();
     }
 
+    public void updateAll() {
+        updateAllStates();
+        moveSlides(slidesPosition + slidesAdjustment, slidesPower);
+        moveLinkage(linkagePosition + linkageAdjustment);
+
+        telemetry.update();
+        clearCache();
+    }
+
+    /**
+     * Clear the bulk cache for each {@link LynxModule} in the robot.
+     */
+    public void clearCache() {
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
+            module.clearBulkCache();
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Moving
+    //----------------------------------------------------------------------------------------------
+
     /**
      * Moves the slides to a target position at a particular power.
      *
@@ -543,9 +595,18 @@ public class Robot {
     }
 
     /**
+     * Moves the linkage to the target position.
+     * @param targetPosition the desired position for the linkage servos [0, 1]
+     */
+    public void moveLinkage(double targetPosition) {
+        linkage2.setPosition(targetPosition);
+        linkage1.setPosition(1-targetPosition);
+    }
+
+    /**
      * Adjust the linkage by a particular amount.
      *
-     * @param adjust
+     * @param adjust the amount to adjust the linkage servo position
      * @see #resetLinkageAdjustment()
      */
     public void linkageAdjust(double adjust) {
@@ -564,7 +625,7 @@ public class Robot {
     /**
      * Adjust the slides by a particular amount.
      *
-     * @param adjust
+     * @param adjust the amount to adjust the slides motor
      * @see #resetSlidesAdjustment()
      */
     public void slidesAdjust(int adjust) {
@@ -799,30 +860,9 @@ public class Robot {
         }
     }
 
-    public double getX() {
-        return xPos;
-    }
-
-    public double getY() {
-        return yPos;
-    }
-
-    public double getTheta() {
-        return thetaPos;
-    }
-
-    public double getThetaDegrees() {
-        return Math.toDegrees(thetaPos);
-    }
-
-    /**
-     * Clear the bulk cache for each {@link LynxModule} in the robot.
-     */
-    public void clearCache() {
-        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
-            module.clearBulkCache();
-        }
-    }
+    //----------------------------------------------------------------------------------------------
+    // Static
+    //----------------------------------------------------------------------------------------------
 
     /**
      * Converts ticks on the encoder to inches.
@@ -831,7 +871,7 @@ public class Robot {
      * @return converted distance in inches
      */
     public static double encoderTicksToInches(double ticks) {
-        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
+        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV; // todo warning TICKS_PER_REV is 0
     }
 
     public enum DeployState {
