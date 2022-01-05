@@ -262,6 +262,8 @@ public class Robot {
     public void deployRest() {
         deploymentState = DeployState.REST;
         dropState = DropState.DROP;
+        firstTime = true;
+        deployTimer.reset();
     }
 
     /**
@@ -273,6 +275,8 @@ public class Robot {
      */
     public void deployMiddle() {
         deploymentState = DeployState.MIDDLE;
+        deployTimer.reset();
+        firstTime = true;
     }
 
     /**
@@ -284,6 +288,8 @@ public class Robot {
      */
     public void deployTop() {
         deploymentState = DeployState.TOP;
+        deployTimer.reset();
+        firstTime = true;
     }
 
     /**
@@ -295,6 +301,8 @@ public class Robot {
      */
     public void deployShared() {
         deploymentState = DeployState.SHARED;
+        deployTimer.reset();
+        firstTime = true;
     }
 
     /**
@@ -359,9 +367,7 @@ public class Robot {
 
 
     //todo clean this up
-    public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    public int desiredSlidesPosition = 0;
 //    public double power = 0.0;
     public double position = 0.0;
 
@@ -458,40 +464,6 @@ public class Robot {
 
             default:
         }
-    }
-
-
-    public void deployRest() {
-        deploymentState = deployState.REST;
-        dropState = drop.DROP;
-        firstTime = true;
-        deployTimer.reset();
-    }
-
-    public void deployMiddle() {
-        deploymentState = deployState.MIDDLE;
-        deployTimer.reset();
-        firstTime = true;
-    }
-
-    public void deployTop() {
-        deploymentState = deployState.TOP;
-        deployTimer.reset();
-        firstTime = true;
-    }
-
-    public void deployShared() {
-        deploymentState = deployState.SHARED;
-        deployTimer.reset();
-        firstTime = true;
-    }
-
-    public void moveSlides(int targetPosition, double power) {
-        slides1.setTargetPosition(targetPosition);
-        slides1.setPower(power);
-
-        slides2.setTargetPosition(targetPosition);
-        slides2.setPower(power);
     }
 
     public void moveLinkage(double targetPosition) {

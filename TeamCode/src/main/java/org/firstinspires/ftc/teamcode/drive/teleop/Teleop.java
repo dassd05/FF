@@ -121,7 +121,7 @@ public class Teleop extends LinearOpMode {
 
             robot.updateAllStates(); //state machine stuff
 
-            telemetry.addData("power", robot.power);
+            telemetry.addData("power", robot.slidesPower);
             telemetry.addData("desired slides position", robot.desiredSlidesPosition);
             telemetry.addData("slides 1 position", robot.getSlides1CurrentPosition());
             telemetry.addData("slides 2 position", robot.getSlides2CurrentPosition());
