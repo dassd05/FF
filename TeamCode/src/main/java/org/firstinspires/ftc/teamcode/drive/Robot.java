@@ -149,6 +149,12 @@ public class Robot {
         slides1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        slides1.setTargetPosition(0);
+        slides1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        slides2.setTargetPosition(0);
+        slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         intake = hardwareMap.get(DcMotor.class, "intake");
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE); //this too
@@ -351,6 +357,16 @@ public class Robot {
         boxState = BoxState.COLLECT;
     }
 
+
+    //todo clean this up
+    public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public int desiredSlidesPosition = 0;
+//    public double power = 0.0;
+    public double position = 0.0;
+
+    boolean firstTime = false;
+
     /**
      * Update the deployment FSM.
      *
@@ -361,18 +377,26 @@ public class Robot {
     public void updateDeployState() {
         switch (deploymentState) {
             case REST:
-                resetSlidesAdjustment();
-                resetLinkageAdjustment();
+                if (firstTime) {
+                    resetSlidesAdjustment();
+                    resetLinkageAdjustment();
+                }
+
+                position = 0;
+
+                collectBox();
 
                 switch (dropState) {
                     case DROP:
-                        if (linkage1.getPosition() < LINKAGE_SAFE_DROP) {
-                            if (slides1.getCurrentPosition() > 35) {
-                                desiredSlidesPosition = 35;
-                                slidesPower = .85;
-                            } else {
-                                safeDropTimer.reset();
-                                dropState = DropState.FINAL;
+                        if (deployTimer.time() > ROTATE_TIME) {
+                            if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
+                                if (slides1.getCurrentPosition() > 35) {
+                                    desiredSlidesPosition = 35;
+                                    slidesPower = .85;
+                                } else {
+                                    safeDropTimer.reset();
+                                    dropState = DropState.FINAL;
+                                }
                             }
                         }
                         break;
@@ -388,22 +412,91 @@ public class Robot {
                 break;
 
             case MIDDLE:
-                desiredSlidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                slidesPower = .8;
+                if (firstTime) {
+                    liftBox();
+                    firstTime = false;
+                }
+
+                if (deployTimer.time() > ROTATE_TIME) {
+                    desiredSlidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPower = .8;
+
+                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
+                        position = .4;
+                }
                 break;
 
             case TOP:
-                desiredSlidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                slidesPower = .85;
+                if (firstTime) {
+                    liftBox();
+                    firstTime = false;
+                }
+
+                if (deployTimer.time() > ROTATE_TIME) {
+                    desiredSlidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPower = .85;
+
+                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
+                        position = .4;
+                }
                 break;
 
             case SHARED:
-                desiredSlidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                slidesPower = .8;
+                if (firstTime) {
+                    liftBox();
+                    firstTime = false;
+                }
+
+                if (deployTimer.time() > ROTATE_TIME) {
+                    desiredSlidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPower = .8;
+
+                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
+                        position = .4;
+                }
                 break;
 
             default:
         }
+    }
+
+
+    public void deployRest() {
+        deploymentState = deployState.REST;
+        dropState = drop.DROP;
+        firstTime = true;
+        deployTimer.reset();
+    }
+
+    public void deployMiddle() {
+        deploymentState = deployState.MIDDLE;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    public void deployTop() {
+        deploymentState = deployState.TOP;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    public void deployShared() {
+        deploymentState = deployState.SHARED;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    public void moveSlides(int targetPosition, double power) {
+        slides1.setTargetPosition(targetPosition);
+        slides1.setPower(power);
+
+        slides2.setTargetPosition(targetPosition);
+        slides2.setPower(power);
+    }
+
+    public void moveLinkage(double targetPosition) {
+        linkage2.setPosition(targetPosition);
+        linkage1.setPosition(1-targetPosition);
     }
 
     /**
@@ -439,10 +532,13 @@ public class Robot {
     public void updateBoxState() {
         switch (boxState) {
             case DROP:
+                boxServo.setPosition(BOX_ROTATION_DEPLOY);
                 break;
             case UP:
+                boxServo.setPosition(BOX_ROTATION_UP);
                 break;
             case COLLECT:
+                boxServo.setPosition(BOX_ROTATION_DOWN);
                 break;
         }
     }

@@ -11,9 +11,11 @@ import java.util.*;
 public class Constants {
 
     //TODO: servo positions
-    public static double BOX_ROTATION_DOWN = 0.0;
-    public static double BOX_ROTATION_UP = 0.0;
-    public static double BOX_ROTATION_DEPLOY = 0.0;
+    public static double BOX_ROTATION_DOWN = 0.17;
+    public static double BOX_ROTATION_UP = 0.56;
+    public static double BOX_ROTATION_DEPLOY = 0.95;
+
+    public static double ROTATE_TIME = 275;
 
     //TODO: min and max positions to avoid going too far
     public static double SLIDES_MAX = 1500;
@@ -34,13 +36,14 @@ public class Constants {
     public static int LOW = 137;
 
     //tune
-    public static double LINKAGE_SAFE_DROP = 0.0;
+    public static double LINKAGE_SAFE_DROP = 0.2;
+    public static double LINKAGE_SAFE_EXTEND = 120;
 
     //TODO: fix these adjustments as necessary
-    public static double LINKAGE_ADJUSTMENT = .0005;
+    public static double LINKAGE_ADJUSTMENT = .01;
     public static int SLIDES_ADJUSTMENT = 5;
 
-    public static double INTAKE_POWER = 0.75;
+    public static double INTAKE_POWER = 0.9;
 
     public static PIDCoefficients pidConsts = new PIDCoefficients(0.0, 0.000, 0.0);
     public static PIDCoefficients pidConstsSlides = new PIDCoefficients(0.0045, 0.00000000, 0.0);

@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode.drive.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.drive.Constants;
 import org.firstinspires.ftc.teamcode.drive.gamepad.GamepadListenerEx;
@@ -27,6 +28,8 @@ public class Teleop extends LinearOpMode {
             @Override
             public void onButtonPress(Button button) {
                 super.onButtonPress(button);
+                if (button == Button.left_bumper)
+                    robot.dropoffBox();
             }
         };
         //toggles intake on/off with right bumper
@@ -68,8 +71,8 @@ public class Teleop extends LinearOpMode {
             double forward = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
 
-            // left bumper -> slow down drive
-            if (gamepad1.left_bumper)
+            // right trigger -> slow down drive
+            if (gamepad1.right_trigger > .3)
                 robot.setTankPowers(forward, turn, 0.3);
             else
                 robot.setTankPowers(forward, turn, 1.0);
@@ -87,6 +90,7 @@ public class Teleop extends LinearOpMode {
             }
 
             robot.moveSlides(robot.desiredSlidesPosition, robot.slidesPower);
+            robot.moveLinkage(Range.clip(robot.position + robot.linkageAdjustment, 0, .9));
 
 
             // gp2 left bumper -> carousel on
@@ -116,6 +120,12 @@ public class Teleop extends LinearOpMode {
 
 
             robot.updateAllStates(); //state machine stuff
+
+            telemetry.addData("power", robot.power);
+            telemetry.addData("desired slides position", robot.desiredSlidesPosition);
+            telemetry.addData("slides 1 position", robot.getSlides1CurrentPosition());
+            telemetry.addData("slides 2 position", robot.getSlides2CurrentPosition());
+            telemetry.addData("state", robot.deploymentState);
 
             telemetry.update();
             gamepadListener1.update();
