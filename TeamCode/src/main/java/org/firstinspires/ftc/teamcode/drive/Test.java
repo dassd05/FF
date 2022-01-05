@@ -1,3 +1,8 @@
+package org.firstinspires.ftc.teamcode.drive;
+
+@Deprecated
+public class Test {}
+
 /*
 package org.firstinspires.ftc.teamcode.HardwareClasses;
 

@@ -1,3 +1,8 @@
+package org.firstinspires.ftc.teamcode.drive.testing;
+
+@Deprecated
+public class LocalizerTest {}
+
 //package org.firstinspires.ftc.teamcode.drive.testing;
 //
 //import com.acmerobotics.dashboard.FtcDashboard;

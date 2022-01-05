@@ -1,82 +1,136 @@
 package org.firstinspires.ftc.teamcode.drive;
 
-import android.util.Log;
-
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.util.Encoder;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvWebcam;
+import org.openftc.easyopencv.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
-import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.pipeline;
-import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
 
+/**
+ * Robot is a class which contains all the functions of the robot.
+ *
+ * <p>To use this class, first call the constructor with your {@link HardwareMap} and
+ * {@link Telemetry}. During the initialization phase, call the desired init functions of Robot.
+ * You may thereafter call the functions of the Robot as desired.</p>
+ */
+@SuppressWarnings("unused")
 public class Robot {
-    public Servo boxServo = null, linkage1 = null, linkage2 = null;
-    public CRServoImplEx carousel1 = null, carousel2 = null;
 
-    public DcMotor frontLeft = null, backLeft = null, frontRight = null, backRight = null;
+    //----------------------------------------------------------------------------------------------
+    // Robot State
+    //----------------------------------------------------------------------------------------------
 
-    public DcMotor intake = null;
+    public static LeftBlue LeftBlueState;
+    public static MiddleBlue MiddleBlueState;
+    public static RightBlue RightBlueState;
+    public static LeftBlue2 LeftBlueState2;
+    public static MiddleBlue2 MiddleBlueState2;
+    public static RightBlue2 RightBlueState2;
+    public static LeftRed LeftRedState;
+    public static MiddleRed MiddleRedState;
+    public static RightRed RightRedState;
 
-    public DcMotorEx slides1 = null, slides2 = null;
+    //----------------------------------------------------------------------------------------------
+    // Parameters
+    //----------------------------------------------------------------------------------------------
 
-    public VoltageSensor batteryVoltageSensor = null;
+    /**
+     * position variables for the robot
+     */
+    public double xPos, yPos, thetaPos;
 
-    public BNO055IMU imu = null;
-
-    public Encoder leftEncoder = null, rightEncoder = null;
-
+    public DcMotor frontLeft, backLeft, frontRight, backRight;
+    public DcMotor intake;
+    public DcMotorEx slides1, slides2;
+    public Servo boxServo, linkage1, linkage2;
+    public CRServoImplEx carousel1, carousel2;
+    public VoltageSensor voltageSensor;
+    public BNO055IMU imu;
+    public Encoder leftEncoder, rightEncoder;
     public WebcamName webcamName;
     public OpenCvWebcam webcam;
 
-    HardwareMap hwMap = null;
-    public Telemetry telemetry = null;
+    public HardwareMap hardwareMap;
+    public Telemetry telemetry;
+    public FtcDashboard dashboard;
 
-    Orientation angles = null;
-    Acceleration gravity = null;
+    public DeployState deploymentState;
+    public DropState dropState;
+    public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public int desiredSlidesPosition = 0;
+    public double slidesPower = 0.0;
+    public IntakeState intakeState;
+    public BoxState boxState;
+    public double linkageAdjustment = 0.0;
+    public int slidesAdjustment = 0;
+    public ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public double errorSlides1 = 0.0;
+    //    public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public ElapsedTime odoTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    double errorSlides2 = 0.0;
 
-    public FtcDashboard dashboard = null;
+    //public ElapsedTime boxTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    //dont need it
+    double lastErrorSlides1 = 0.0;
+    double lastErrorSlides2 = 0.0;
+    double integralSlides1 = 0.0;
+    double integralSlides2 = 0.0;
 
-    public Robot() {
+    //    public enum TeamShippingElementState {
+//
+//    }
+    ElapsedTime PIDDriveTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    double lastErrorDrive = 0.0;
+    double integralDrive = 0.0;
+    double errorDrive = 0.0;
 
+    //----------------------------------------------------------------------------------------------
+    // Initialization
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Constructor for the {@link Robot} class. <i>Does not do the initialization!</i>
+     *
+     * @param hardwareMap the hardwareMap you get from {@link com.qualcomm.robotcore.eventloop.opmode.OpMode}
+     * @param telemetry   the telemetry you get from {@link com.qualcomm.robotcore.eventloop.opmode.OpMode}
+     * @see #init()
+     * @see #webcamInit(OpenCvPipeline)
+     * @see #dashboardInit()
+     */
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.hardwareMap = hardwareMap;
+        this.telemetry = telemetry;
     }
 
-    public void init(HardwareMap ahwMap) {
+    /**
+     * Initialize most of the hardware for the robot.
+     *
+     * @see #webcamInit(OpenCvPipeline)
+     * @see #dashboardInit()
+     */
+    public void init() {
         //TODO: hardware mappings
-        hwMap = ahwMap;
-
-        frontLeft = hwMap.get(DcMotor.class, "frontLeft");
-        backLeft = hwMap.get(DcMotor.class, "backLeft");
-        frontRight = hwMap.get(DcMotor.class, "frontRight");
-        backRight = hwMap.get(DcMotor.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -86,8 +140,8 @@ public class Robot {
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE); //this is correct
 
-        slides1 = hwMap.get(DcMotorEx.class, "slides1");
-        slides2 = hwMap.get(DcMotorEx.class, "slides2");
+        slides1 = hardwareMap.get(DcMotorEx.class, "slides1");
+        slides2 = hardwareMap.get(DcMotorEx.class, "slides2");
 
         slides1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slides2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -101,7 +155,7 @@ public class Robot {
         slides2.setTargetPosition(0);
         slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        intake = hwMap.get(DcMotor.class, "intake");
+        intake = hardwareMap.get(DcMotor.class, "intake");
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE); //this too
 
@@ -112,12 +166,13 @@ public class Robot {
 //        leftEncoder.setDirection(Encoder.Direction.REVERSE);
 //        rightEncoder.setDirection(Encoder.Direction.REVERSE);
 
-        boxServo = hwMap.get(Servo.class, "boxServo");
-        carousel1 = hwMap.get(CRServoImplEx.class, "carousel1");
-        carousel2 = hwMap.get(CRServoImplEx.class, "carousel2");
-        linkage1 = hwMap.get(Servo.class, "linkage1");
-        linkage2 = hwMap.get(Servo.class, "linkage2");
+        boxServo = hardwareMap.get(Servo.class, "boxServo");
+        carousel1 = hardwareMap.get(CRServoImplEx.class, "carousel1");
+        carousel2 = hardwareMap.get(CRServoImplEx.class, "carousel2");
+        linkage1 = hardwareMap.get(Servo.class, "linkage1");
+        linkage2 = hardwareMap.get(Servo.class, "linkage2");
 
+        //noinspection DuplicatedCode
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
@@ -125,14 +180,11 @@ public class Robot {
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-
-        imu = hwMap.get(BNO055IMU.class, "imu");
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
-        composeTelemetry();
 
-        for (LynxModule module : hwMap.getAll(LynxModule.class)) {
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
@@ -151,21 +203,25 @@ public class Robot {
         }
 
         intakeState = IntakeState.OFF;
-        deploymentState = deployState.REST;
+        deploymentState = DeployState.REST;
         boxState = BoxState.COLLECT;
-        dropState = drop.DROP;
+        dropState = DropState.DROP;
 
         telemetry.update();
         telemetry.clearAll();
     }
 
-    public void webcamInit(HardwareMap ahwMap) {
-        hwMap = ahwMap;
-
-        int cameraMonitorViewId = hwMap.appContext.getResources().
-                getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
-
-        webcamName = hwMap.get(WebcamName.class, "Webcam 1");
+    /**
+     * Initializes the {@link OpenCvWebcam} for the robot.
+     *
+     * @param pipeline the pipeline to set for the webcam
+     * @see #init()
+     * @see #dashboardInit()
+     */
+    public void webcamInit(OpenCvPipeline pipeline) {
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().
+                getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
         webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
         webcam.setPipeline(pipeline);
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -181,31 +237,149 @@ public class Robot {
         });
     }
 
-    public enum deployState {
-        REST,
-        MIDDLE,
-        TOP,
-        SHARED,
+    /**
+     * Initializes an {@link FtcDashboard} for the robot, as well as the telemetry for the dashboard.
+     *
+     * @see #init()
+     * @see #webcamInit(OpenCvPipeline)
+     */
+    public void dashboardInit() {
+        dashboard = FtcDashboard.getInstance();
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
     }
 
-    public deployState deploymentState;
+    //----------------------------------------------------------------------------------------------
+    // Updating State
+    //----------------------------------------------------------------------------------------------
 
-    public enum drop {
-        DROP,
-        FINAL
+    /**
+     * Put the deployment in the resting state.
+     *
+     * @see #deployMiddle()
+     * @see #deployTop()
+     * @see #deployShared()
+     */
+    public void deployRest() {
+        deploymentState = DeployState.REST;
+        dropState = DropState.DROP;
+        firstTime = true;
+        deployTimer.reset();
     }
 
-    public drop dropState;
+    /**
+     * Move the deployment into the position for the middle rack of the alliance shipping hub.
+     *
+     * @see #deployRest()
+     * @see #deployTop()
+     * @see #deployShared()
+     */
+    public void deployMiddle() {
+        deploymentState = DeployState.MIDDLE;
+        deployTimer.reset();
+        firstTime = true;
+    }
 
-    public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    /**
+     * Move the deployment into the position for the top rack of the alliance shipping hub.
+     *
+     * @see #deployRest()
+     * @see #deployMiddle()
+     * @see #deployShared()
+     */
+    public void deployTop() {
+        deploymentState = DeployState.TOP;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    /**
+     * Move the deployment into the position for the shared shipping hub.
+     *
+     * @see #deployRest()
+     * @see #deployMiddle()
+     * @see #deployTop()
+     */
+    public void deployShared() {
+        deploymentState = DeployState.SHARED;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    /**
+     * Turn the intake on.
+     *
+     * @see #intakeOff()
+     * @see #intakeReverse()
+     */
+    public void intakeOn() {
+        intakeState = IntakeState.ON;
+    }
+
+    /**
+     * Turn the intake off.
+     *
+     * @see #intakeOn()
+     * @see #intakeReverse()
+     */
+    public void intakeOff() {
+        intakeState = IntakeState.OFF;
+    }
+
+    /**
+     * Make the intake rotate in the reverse direction
+     *
+     * @see #intakeOn()
+     * @see #intakeOff()
+     */
+    public void intakeReverse() {
+        intakeState = IntakeState.REVERSE;
+    }
+
+    /**
+     * Rotate the box into the drop-off state.
+     *
+     * @see #liftBox()
+     * @see #collectBox()
+     */
+    public void dropoffBox() {
+        boxState = BoxState.DROP;
+    }
+
+    /**
+     * Rotate the box into an upwards state.
+     *
+     * @see #dropoffBox()
+     * @see #collectBox()
+     */
+    public void liftBox() {
+        boxState = BoxState.UP;
+    }
+
+    /**
+     * Rotate the box into position for intaking.
+     *
+     * @see #dropoffBox()
+     * @see #liftBox()
+     */
+    public void collectBox() {
+        boxState = BoxState.COLLECT;
+    }
+
+
+    //todo clean this up
     public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-
-    public int desiredSlidesPosition = 0;
-    public double power = 0.0;
+//    public double power = 0.0;
     public double position = 0.0;
 
     boolean firstTime = false;
 
+    /**
+     * Update the deployment FSM.
+     *
+     * @see #updateIntakeState()
+     * @see #updateBoxState()
+     * @see #updateAllStates()
+     */
     public void updateDeployState() {
         switch (deploymentState) {
             case REST:
@@ -224,10 +398,10 @@ public class Robot {
                             if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
                                 if (slides1.getCurrentPosition() > 35) {
                                     desiredSlidesPosition = 35;
-                                    power = .85;
+                                    slidesPower = .85;
                                 } else {
                                     safeDropTimer.reset();
-                                    dropState = drop.FINAL;
+                                    dropState = DropState.FINAL;
                                 }
                             }
                         }
@@ -236,7 +410,7 @@ public class Robot {
                     case FINAL:
                         if (safeDropTimer.time() > 250) {
                             desiredSlidesPosition = 0;
-                            power = .3;
+                            slidesPower = .3;
                         }
                         break;
                 }
@@ -251,7 +425,7 @@ public class Robot {
 
                 if (deployTimer.time() > ROTATE_TIME) {
                     desiredSlidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                    power = .8;
+                    slidesPower = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         position = .4;
@@ -266,7 +440,7 @@ public class Robot {
 
                 if (deployTimer.time() > ROTATE_TIME) {
                     desiredSlidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                    power = .85;
+                    slidesPower = .85;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         position = .4;
@@ -281,7 +455,7 @@ public class Robot {
 
                 if (deployTimer.time() > ROTATE_TIME) {
                     desiredSlidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                    power = .8;
+                    slidesPower = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         position = .4;
@@ -292,53 +466,18 @@ public class Robot {
         }
     }
 
-
-    public void deployRest() {
-        deploymentState = deployState.REST;
-        dropState = drop.DROP;
-        firstTime = true;
-        deployTimer.reset();
-    }
-
-    public void deployMiddle() {
-        deploymentState = deployState.MIDDLE;
-        deployTimer.reset();
-        firstTime = true;
-    }
-
-    public void deployTop() {
-        deploymentState = deployState.TOP;
-        deployTimer.reset();
-        firstTime = true;
-    }
-
-    public void deployShared() {
-        deploymentState = deployState.SHARED;
-        deployTimer.reset();
-        firstTime = true;
-    }
-
-    public void moveSlides(int targetPosition, double power) {
-        slides1.setTargetPosition(targetPosition);
-        slides1.setPower(power);
-
-        slides2.setTargetPosition(targetPosition);
-        slides2.setPower(power);
-    }
-
     public void moveLinkage(double targetPosition) {
         linkage2.setPosition(targetPosition);
         linkage1.setPosition(1-targetPosition);
     }
 
-    public enum IntakeState {
-        OFF,
-        REVERSE,
-        ON
-    }
-
-    public IntakeState intakeState;
-
+    /**
+     * Update the intake FSM.
+     *
+     * @see #updateDeployState()
+     * @see #updateBoxState()
+     * @see #updateAllStates()
+     */
     public void updateIntakeState() {
         switch (intakeState) {
             case ON:
@@ -355,29 +494,13 @@ public class Robot {
         }
     }
 
-    public void intakeOn() {
-        intakeState = IntakeState.ON;
-    }
-
-    public void intakeOff() {
-        intakeState = IntakeState.OFF;
-    }
-
-    public void intakeReverse() {
-        intakeState = IntakeState.REVERSE;
-    }
-
-    public enum BoxState {
-        COLLECT,
-        UP,
-        DROP
-    }
-
-    public BoxState boxState;
-
-    //public ElapsedTime boxTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    //dont need it
-
+    /**
+     * Update the box FSM.
+     *
+     * @see #updateDeployState()
+     * @see #updateIntakeState()
+     * @see #updateAllStates()
+     */
     public void updateBoxState() {
         switch (boxState) {
             case DROP:
@@ -392,48 +515,70 @@ public class Robot {
         }
     }
 
-    public void dropoffBox() {
-        boxState = BoxState.DROP;
-    }
-
-    public void liftBox() {
-        boxState = BoxState.UP;
-    }
-
-    public void collectBox() {
-        boxState = BoxState.COLLECT;
-    }
-
-//    public enum TeamShippingElementState {
-//
-//    }
-
+    /**
+     * Update all FSMs on the robot.
+     *
+     * @see #updateDeployState()
+     * @see #updateIntakeState()
+     * @see #updateBoxState()
+     */
     public void updateAllStates() {
         updateDeployState();
         updateIntakeState();
         updateBoxState();
     }
 
-    public double linkageAdjustment = 0.0;
+    /**
+     * Moves the slides to a target position at a particular power.
+     *
+     * @param targetPosition the desired encoder target position for the slides motor
+     * @param power          the power to set the motors to
+     */
+    public void moveSlides(int targetPosition, double power) {
+        slides1.setTargetPosition(targetPosition);
+        slides1.setPower(power);
 
+        slides2.setTargetPosition(targetPosition);
+        slides2.setPower(power);
+    }
+
+    /**
+     * Adjust the linkage by a particular amount.
+     *
+     * @param adjust
+     * @see #resetLinkageAdjustment()
+     */
     public void linkageAdjust(double adjust) {
         linkageAdjustment += adjust;
     }
 
+    /**
+     * Reset the linkage's adjustment.
+     *
+     * @see #linkageAdjust(double)
+     */
     public void resetLinkageAdjustment() {
         linkageAdjustment = 0.0;
     }
 
-    public int slidesAdjustment = 0;
-
+    /**
+     * Adjust the slides by a particular amount.
+     *
+     * @param adjust
+     * @see #resetSlidesAdjustment()
+     */
     public void slidesAdjust(int adjust) {
         slidesAdjustment += adjust;
     }
 
+    /**
+     * Reset the slides' adjustment.
+     *
+     * @see #slidesAdjust(int)
+     */
     public void resetSlidesAdjustment() {
         slidesAdjustment = 0;
     }
-
 
     public double getSlides1CurrentPosition() {
         return slides1.getCurrentPosition();
@@ -443,16 +588,8 @@ public class Robot {
         return slides2.getCurrentPosition();
     }
 
-    public ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-
-    public double errorSlides1 = 0.0;
-    double errorSlides2 = 0.0;
-    double lastErrorSlides1 = 0.0;
-    double lastErrorSlides2 = 0.0;
-    double integralSlides1 = 0.0;
-    double integralSlides2 = 0.0;
-
     //rip not using
+    @Deprecated
     public void linearSlidesPID(double position, double update, boolean runPID) {
         if (runPID) {
             errorSlides1 = position - getSlides1CurrentPosition();
@@ -490,81 +627,11 @@ public class Robot {
         }
     }
 
-    public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-
-
-    public enum LeftBlue {
-
-    }
-
-    public static LeftBlue LeftBlueState;
-
-
-    public enum MiddleBlue {
-
-    }
-
-    public static MiddleBlue MiddleBlueState;
-
-
-    public enum RightBlue {
-
-    }
-
-    public static RightBlue RightBlueState;
-
-    public enum LeftBlue2 {
-
-    }
-
-    public static LeftBlue2 LeftBlueState2;
-
-
-    public enum MiddleBlue2 {
-
-    }
-
-    public static MiddleBlue2 MiddleBlueState2;
-
-
-    public enum RightBlue2 {
-
-    }
-
-    public static RightBlue2 RightBlueState2;
-
-
-    public enum LeftRed {
-
-    }
-
-    public static LeftRed LeftRedState;
-
-
-    public enum MiddleRed {
-
-    }
-
-    public static MiddleRed MiddleRedState;
-
-
-    public enum RightRed {
-
-    }
-
-    public static RightRed RightRedState;
-
-
-    public void composeTelemetry() {
-        telemetry.addAction(new Runnable() {
-            @Override
-            public void run() {
-                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                gravity = imu.getGravity();
-            }
-        });
-    }
-
+    /**
+     * Get the heading of the robot, according to imu.
+     *
+     * @return the heading of the robot, in radians
+     */
     public double getAngle() {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
         //might want to experiment with extrinsic, but Im not sure if it will actually reduce drift
@@ -577,6 +644,13 @@ public class Robot {
             return -getThetaDegrees(); //we switch the signs cause odo returns increasing angle counter clockwise
     }
 
+    /**
+     * Set motor powers for a tank drive, where you can control the speed of the left and right
+     * side of the drivetrain.
+     *
+     * @param left  number in the range [-1, 1] representing the velocity to set the left side to
+     * @param right number in the range [-1, 1] representing the velocity to set the right side to
+     */
     public void setTankPowers(double left, double right) {
         frontLeft.setPower(left);
         backLeft.setPower(left);
@@ -584,18 +658,23 @@ public class Robot {
         backRight.setPower(right);
     }
 
+    /**
+     * Set motor powers for a tank drive, where you can control the forward velocity (relative to
+     * the robot) and rotational speed. You can also add a multiplier to adjust the sensitivity.
+     *
+     * @param forward    number in the range [-1, 1] representing the relative forward velocity
+     * @param turn       number in the range [-1, 1] representing the velocity to set the left side to,
+     *                   with positive representing clockwise motion and negative representing
+     *                   counterclockwise motion.
+     * @param multiplier <i><b>PROBABLY SHOULD GET RID OF, SINCE WE CAN DO IT MANUALLY
+     *                   OUTSIDE OF THE FUNCTION.</b></i>
+     */
     public void setTankPowers(double forward, double turn, double multiplier) {
         frontLeft.setPower((forward + turn) * multiplier);
         backLeft.setPower((forward + turn) * multiplier);
         frontRight.setPower((forward - turn) * multiplier);
         backRight.setPower((forward - turn) * multiplier);
     }
-
-    ElapsedTime PIDDriveTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-
-    double lastErrorDrive = 0.0;
-    double integralDrive = 0.0;
-    double errorDrive = 0.0;
 
     public void PIDDrive(double target, double left, double right, boolean runPID, long update) {
         if (runPID) {
@@ -639,15 +718,10 @@ public class Robot {
     public void decelerate() {
     }
 
-    public ElapsedTime odoTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-
-    public static double encoderTicksToInches(double ticks) {
-        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
-    }
-
     public double getLeftWheelVelo() {
         return encoderTicksToInches(leftEncoder.getCorrectedVelocity()) * LEFT_WHEEL_MULTIPLIER;
     }
+
     public double getLeftWheelPos() {
         return encoderTicksToInches(leftEncoder.getCurrentPosition()) * LEFT_WHEEL_MULTIPLIER;
     }
@@ -655,12 +729,10 @@ public class Robot {
     public double getRightWheelVelo() {
         return encoderTicksToInches(rightEncoder.getCorrectedVelocity() * RIGHT_WHEEL_MULTIPLIER);
     }
+
     public double getRightWheelPos() {
         return encoderTicksToInches(rightEncoder.getCurrentPosition()) * RIGHT_WHEEL_MULTIPLIER;
     }
-
-
-    public static double xPos, yPos, thetaPos;
 
     //new update method that utilizes velocity instead of positions
     //might need to make adjustments (e.g. using position change rather than getVelo, using position instead of velo * time, etc.)
@@ -730,20 +802,97 @@ public class Robot {
     public double getX() {
         return xPos;
     }
+
     public double getY() {
         return yPos;
     }
+
     public double getTheta() {
         return thetaPos;
     }
+
     public double getThetaDegrees() {
         return Math.toDegrees(thetaPos);
     }
 
+    /**
+     * Clear the bulk cache for each {@link LynxModule} in the robot.
+     */
     public void clearCache() {
-        for (LynxModule module : hwMap.getAll(LynxModule.class)) {
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.clearBulkCache();
         }
+    }
+
+    /**
+     * Converts ticks on the encoder to inches.
+     *
+     * @param ticks number of encoder ticks
+     * @return converted distance in inches
+     */
+    public static double encoderTicksToInches(double ticks) {
+        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
+    }
+
+    public enum DeployState {
+        REST,
+        MIDDLE,
+        TOP,
+        SHARED,
+    }
+
+    public enum DropState {
+        DROP,
+        FINAL
+    }
+
+    public enum IntakeState {
+        OFF,
+        REVERSE,
+        ON
+    }
+
+    public enum BoxState {
+        COLLECT,
+        UP,
+        DROP
+    }
+
+    public enum LeftBlue {
+
+    }
+
+    public enum MiddleBlue {
+
+    }
+
+
+    public enum RightBlue {
+
+    }
+
+    public enum LeftBlue2 {
+
+    }
+
+    public enum MiddleBlue2 {
+
+    }
+
+    public enum RightBlue2 {
+
+    }
+
+    public enum LeftRed {
+
+    }
+
+    public enum MiddleRed {
+
+    }
+
+    public enum RightRed {
+
     }
 
 }

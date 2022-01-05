@@ -1,7 +1,6 @@
-package org.firstinspires.ftc.teamcode.drive.GamepadSystems;
+package org.firstinspires.ftc.teamcode.drive.gamepad;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
-import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListener;
 
 import java.util.HashSet;
 import java.util.Set;

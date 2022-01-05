@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Autons.Vision;
+package org.firstinspires.ftc.teamcode.drive.vision;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -15,8 +15,9 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
+@Deprecated
 public abstract class BoxPositionDetection extends LinearOpMode {
 
     protected WebcamName webcamName;

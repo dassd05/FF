@@ -1,15 +1,11 @@
-package org.firstinspires.ftc.teamcode.drive.TeleOp;
+package org.firstinspires.ftc.teamcode.drive.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.teamcode.drive.Robot;
-import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 
 
+@Deprecated
 @TeleOp(name = "WhyIsntThisWorking", group = "1")
 public class WhyIsntThisWorking extends LinearOpMode {
 
