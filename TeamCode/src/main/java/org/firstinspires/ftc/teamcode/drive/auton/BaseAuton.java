@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.drive.Robot;
 import static org.firstinspires.ftc.teamcode.drive.vision.BoxDetectionPipeline.BoxPosition;
 
 public abstract class BaseAuton extends LinearOpMode {
-    public Robot robot = new Robot(hardwareMap, telemetry);
+    public Robot robot;
     public BoxDetectionPipeline pipeline;
 
     public BoxPosition boxPosition;
@@ -19,6 +19,7 @@ public abstract class BaseAuton extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        robot = new Robot(hardwareMap, telemetry);
         pipeline = new BoxDetectionPipeline();
         robot.init();
         robot.dashboardInit();

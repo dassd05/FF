@@ -199,6 +199,7 @@ public class Robot {
         intakeState = IntakeState.OFF;
         deploymentState = DeployState.REST;
         boxState = BoxState.COLLECT;
+        dropState = DropState.DROP;
 
         telemetry.update();
         telemetry.clearAll();
