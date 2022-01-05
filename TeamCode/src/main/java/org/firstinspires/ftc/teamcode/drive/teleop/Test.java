@@ -1,18 +1,15 @@
-package org.firstinspires.ftc.teamcode.drive.TeleOp;
+package org.firstinspires.ftc.teamcode.drive.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.drive.Robot;
-import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
+import org.firstinspires.ftc.teamcode.drive.gamepad.GamepadListenerEx;
 
 
 @TeleOp(name = "Test", group = "1")
 public class Test extends LinearOpMode {
 
-    Robot r = new Robot(); //instantiate Robot object
+    Robot robot;
 
     boolean runThouPID = true;
 
@@ -23,9 +20,8 @@ public class Test extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-
-        r.telemetry = telemetry;
-        r.init(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry);
+        robot.init();
 
         GamepadListenerEx gamepadListener1 = new GamepadListenerEx(gamepad1) {
             @Override
@@ -49,34 +45,34 @@ public class Test extends LinearOpMode {
 
         if (opModeIsActive()) {
 
-            r.slidesTimer.reset();
+            robot.slidesTimer.reset();
 
             while (opModeIsActive()) {
 
-                r.clearCache();
+                robot.clearCache();
 
                 double forward = -gamepad1.left_stick_y;
                 double turn = gamepad1.right_stick_x;
 
                 // left bumper -> slow down drive
                 if (gamepad1.left_bumper)
-                    r.setTankPowers(forward, turn, 0.3);
+                    robot.setTankPowers(forward, turn, 0.3);
                 else
-                    r.setTankPowers(forward, turn, 1.0);
+                    robot.setTankPowers(forward, turn, 1.0);
 
 
                 // right trigger hold -> reverse carousel direction
                 if (carouselOn) {
                     if (gamepad2.right_trigger > 0.5) {
-                        r.carousel1.setPower(-1);
-                        r.carousel2.setPower(1);
+                        robot.carousel1.setPower(-1);
+                        robot.carousel2.setPower(1);
                     } else {
-                        r.carousel1.setPower(1);
-                        r.carousel2.setPower(-1);
+                        robot.carousel1.setPower(1);
+                        robot.carousel2.setPower(-1);
                     }
                 } else {
-                    r.carousel1.setPower(0);
-                    r.carousel2.setPower(0);
+                    robot.carousel1.setPower(0);
+                    robot.carousel2.setPower(0);
                 }
 
 
@@ -84,36 +80,36 @@ public class Test extends LinearOpMode {
                 // right trigger hold -> reverse power
                 if (intakeOn)
                     if (gamepad2.right_trigger > 0.5) //works since you don't have to hold right bumper
-                        r.intakeReverse();
+                        robot.intakeReverse();
                     else
-                        r.intakeOn();
+                        robot.intakeOn();
                 else
-                    r.intakeOff();
+                    robot.intakeOff();
 
-                r.slides1.setPower(.5);
-                r.slides2.setPower(.5);
+                robot.slides1.setPower(.5);
+                robot.slides2.setPower(.5);
 
 
-//                if (Math.abs(r.getSlides1CurrentPosition() - target) < 20 || Math.abs(r.getSlides2CurrentPosition() - target) < 20) {
-//                    r.slides1.setVelocity(0);
-//                    r.slides2.setVelocity(0);
+//                if (Math.abs(robot.getSlides1CurrentPosition() - target) < 20 || Math.abs(robot.getSlides2CurrentPosition() - target) < 20) {
+//                    robot.slides1.setVelocity(0);
+//                    robot.slides2.setVelocity(0);
 //                }
 //                else {
-//                    r.slides1.setVelocity(400);
-//                    r.slides2.setVelocity(400);
+//                    robot.slides1.setVelocity(400);
+//                    robot.slides2.setVelocity(400);
 //                }
 
-                //r.linearSlidesPID(target, r.slidesTimer.time(), runThouPID);
+                //robot.linearSlidesPID(target, robot.slidesTimer.time(), runThouPID);
 
 
 
-                r.updateIntakeState(); //state machine stuff
+                robot.updateIntakeState(); //state machine stuff
 
-                telemetry.addData("slides error", r.errorSlides1);
+                telemetry.addData("slides error", robot.errorSlides1);
                 //for motor direction debugging
 
-                telemetry.addData("slides1", r.slides1.getCurrentPosition());
-                telemetry.addData("slides2", r.slides2.getCurrentPosition());
+                telemetry.addData("slides1", robot.slides1.getCurrentPosition());
+                telemetry.addData("slides2", robot.slides2.getCurrentPosition());
 
                 telemetry.update();
                 gamepadListener1.update();

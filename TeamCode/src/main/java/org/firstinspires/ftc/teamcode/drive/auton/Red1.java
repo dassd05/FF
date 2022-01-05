@@ -11,9 +11,7 @@ public class Red1 extends BaseAuton {
 
     @Override
     public void setRobotPosition() {
-        robot.xPos = 0;
-        robot.yPos = 0;
-        robot.thetaPos = 0; //ofc might want to change
+        robot.setPosition(0, 0, 0); //ofc might want to change
     }
 
     @Override

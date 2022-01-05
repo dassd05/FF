@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.drive.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.drive.Constants;
 import org.firstinspires.ftc.teamcode.drive.gamepad.GamepadListenerEx;
@@ -43,20 +42,26 @@ public class Teleop extends LinearOpMode {
                     carouselOn = !carouselOn;
 
                 //TODO: adjust to driver preference
-                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.REST)
-                    robot.deployTop();
-                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.MIDDLE)
-                    robot.deployTop();
-                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.SHARED)
-                    robot.deployMiddle();
+//                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.REST)
+//                    robot.deployTop();
+//                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.MIDDLE)
+//                    robot.deployTop();
+//                if (button == Button.dpad_up && robot.deploymentState == Robot.DeployState.SHARED)
+//                    robot.deployMiddle();
+//
+//                if (button == Button.dpad_down && robot.deploymentState != Robot.DeployState.REST)
+//                    robot.deployRest();
+//                else if (button == Button.dpad_down)
+//                    robot.deployShared();
+//
+//                if (button == Button.dpad_left || button == Button.dpad_right)
+//                    robot.deployMiddle();
 
-                if (button == Button.dpad_down && robot.deploymentState != Robot.DeployState.REST)
-                    robot.deployRest();
-                else if (button == Button.dpad_down)
-                    robot.deployShared();
 
-                if (button == Button.dpad_left || button == Button.dpad_right)
-                    robot.deployMiddle();
+                if (button == Button.dpad_up) robot.deployTop();
+                else if (button == Button.dpad_right) robot.deployMiddle();
+                else if (button == Button.dpad_left) robot.deployShared();
+                else if (button == Button.dpad_down) robot.deployRest();
             }
         };
 
@@ -65,9 +70,6 @@ public class Teleop extends LinearOpMode {
         buttonCoolDown.reset();
 
         while (opModeIsActive()) {
-
-            robot.clearCache();
-
             double forward = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
 
@@ -89,8 +91,8 @@ public class Teleop extends LinearOpMode {
                     adjustStuff();
             }
 
-            robot.moveSlides(robot.desiredSlidesPosition, robot.slidesPower);
-            robot.moveLinkage(Range.clip(robot.position + robot.linkageAdjustment, 0, .9));
+//            robot.moveSlides(robot.desiredSlidesPosition, robot.slidesPower);
+//            robot.moveLinkage(Range.clip(robot.linkagePosition + robot.linkageAdjustment, 0, .9));
 
 
             // gp2 left bumper -> carousel on
@@ -119,15 +121,13 @@ public class Teleop extends LinearOpMode {
                 robot.intakeOff();
 
 
-            robot.updateAllStates(); //state machine stuff
-
             telemetry.addData("power", robot.slidesPower);
-            telemetry.addData("desired slides position", robot.desiredSlidesPosition);
+            telemetry.addData("desired slides position", robot.slidesPosition);
             telemetry.addData("slides 1 position", robot.getSlides1CurrentPosition());
             telemetry.addData("slides 2 position", robot.getSlides2CurrentPosition());
-            telemetry.addData("state", robot.deploymentState);
+            telemetry.addData("state", robot.getDeployState());
 
-            telemetry.update();
+            robot.updateAll();
             gamepadListener1.update();
             gamepadListener2.update();
         }
