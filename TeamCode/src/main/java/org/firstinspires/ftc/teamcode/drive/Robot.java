@@ -72,11 +72,12 @@ public class Robot {
     protected IntakeState intakeState;
     protected DeployState deployState;
     protected BoxState boxState;
-    protected DropState dropState;
+    @Deprecated protected DropState dropState;
 
     public ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public double linkageTuckedInTime;
     public ElapsedTime odoTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     public int slidesPosition = 0;
@@ -88,7 +89,6 @@ public class Robot {
     public double errorSlides1 = 0;
     public double errorSlides2 = 0;
 
-    public boolean firstTime = false;
     double lastErrorSlides1 = 0;
     double lastErrorSlides2 = 0;
     double integralSlides1 = 0;
@@ -205,7 +205,7 @@ public class Robot {
 
         intakeState = IntakeState.OFF;
         deployState = DeployState.REST;
-        boxState = BoxState.COLLECT;
+        boxState = BoxState.DOWN;
         dropState = DropState.DROP;
 
         telemetry.update();
@@ -303,10 +303,12 @@ public class Robot {
      * @see #deployShared()
      */
     public void deployRest() {
-        deployState = DeployState.REST;
-        dropState = DropState.DROP;
-        firstTime = true;
-        deployTimer.reset();
+        if (deployState != DeployState.REST) {
+            deployState = DeployState.GO_TO_REST;
+            dropState = DropState.DROP;
+            deployTimer.reset();
+            linkageTuckedInTime = linkage2.getPosition() * 2000 - slidesPosition * .35;
+        }
     }
 
     /**
@@ -317,9 +319,11 @@ public class Robot {
      * @see #deployShared()
      */
     public void deployMiddle() {
-        deployState = DeployState.MIDDLE;
-        deployTimer.reset();
-        firstTime = true;
+        if (deployState != DeployState.MIDDLE) {
+            deployState = DeployState.MIDDLE;
+            deployTimer.reset();
+            boxUp();
+        }
     }
 
     /**
@@ -330,9 +334,11 @@ public class Robot {
      * @see #deployShared()
      */
     public void deployTop() {
-        deployState = DeployState.TOP;
-        deployTimer.reset();
-        firstTime = true;
+        if (deployState != DeployState.TOP) {
+            deployState = DeployState.TOP;
+            deployTimer.reset();
+            boxUp();
+        }
     }
 
     /**
@@ -343,9 +349,11 @@ public class Robot {
      * @see #deployTop()
      */
     public void deployShared() {
-        deployState = DeployState.SHARED;
-        deployTimer.reset();
-        firstTime = true;
+        if (deployState != DeployState.SHARED) {
+            deployState = DeployState.SHARED;
+            deployTimer.reset();
+            boxUp();
+        }
     }
 
     /**
@@ -381,31 +389,31 @@ public class Robot {
     /**
      * Rotate the box into the drop-off state.
      *
-     * @see #liftBox()
-     * @see #collectBox()
+     * @see #boxUp()
+     * @see #boxDown()
      */
-    public void dropoffBox() {
+    public void boxDrop() {
         boxState = BoxState.DROP;
     }
 
     /**
      * Rotate the box into an upwards state.
      *
-     * @see #dropoffBox()
-     * @see #collectBox()
+     * @see #boxDrop()
+     * @see #boxDown()
      */
-    public void liftBox() {
+    public void boxUp() {
         boxState = BoxState.UP;
     }
 
     /**
      * Rotate the box into position for intaking.
      *
-     * @see #dropoffBox()
-     * @see #liftBox()
+     * @see #boxDrop()
+     * @see #boxUp()
      */
-    public void collectBox() {
-        boxState = BoxState.COLLECT;
+    public void boxDown() {
+        boxState = BoxState.DOWN;
     }
 
     /**
@@ -417,87 +425,49 @@ public class Robot {
      */
     public void updateDeployState() {
         switch (deployState) {
-            case REST:
-                if (firstTime) {
-                    resetSlidesAdjustment();
-                    resetLinkageAdjustment();
-                }
-
+            case GO_TO_REST:
+                slidesPosition += slidesAdjustment;
+                resetSlidesAdjustment();
+                resetLinkageAdjustment();
                 linkagePosition = 0;
-
-                collectBox();
-
-                switch (dropState) {
-                    case DROP:
-                        if (deployTimer.time() > ROTATE_TIME) {
-                            if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
-                                if (slides1.getCurrentPosition() > 35) {
-                                    slidesPosition = 35;
-                                    slidesPower = .85;
-                                } else {
-                                    safeDropTimer.reset();
-                                    dropState = DropState.FINAL;
-                                }
-                            }
-                        }
-                        break;
-
-                    case FINAL:
-                        if (safeDropTimer.time() > 250) {
-                            slidesPosition = 0;
-                            slidesPower = .3;
-                        }
-                        break;
+                boxDown();
+                if (deployTimer.time() > linkageTuckedInTime && deployTimer.time() > ROTATE_TIME) {
+                    slidesPosition *= .7;
+                    slidesPower = (double) slidesPosition / SLIDES_MAX + .2;
                 }
-
+                if (slidesPosition < 10) {
+                    deployState = DeployState.REST;
+                }
+                break;
+            case REST:
                 break;
 
             case MIDDLE:
-                if (firstTime) {
-                    liftBox();
-                    firstTime = false;
-                }
-
                 if (deployTimer.time() > ROTATE_TIME) {
-                    slidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPosition = SLIDES_MID;
                     slidesPower = .8;
-
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         linkagePosition = .4;
                 }
                 break;
 
             case TOP:
-                if (firstTime) {
-                    liftBox();
-                    firstTime = false;
-                }
-
                 if (deployTimer.time() > ROTATE_TIME) {
-                    slidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPosition = SLIDES_TOP;
                     slidesPower = .85;
-
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         linkagePosition = .4;
                 }
                 break;
 
             case SHARED:
-                if (firstTime) {
-                    liftBox();
-                    firstTime = false;
-                }
-
                 if (deployTimer.time() > ROTATE_TIME) {
-                    slidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                    slidesPosition = SLIDES_LOW;
                     slidesPower = .8;
-
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         linkagePosition = .4;
                 }
                 break;
-
-            default:
         }
     }
 
@@ -539,7 +509,7 @@ public class Robot {
             case UP:
                 boxServo.setPosition(BOX_ROTATION_UP);
                 break;
-            case COLLECT:
+            case DOWN:
                 boxServo.setPosition(BOX_ROTATION_DOWN);
                 break;
         }
@@ -583,14 +553,14 @@ public class Robot {
     /**
      * Moves the slides to a target position at a particular power.
      *
-     * @param targetPosition the desired encoder target position for the slides motor
+     * @param targetPosition the desired encoder target position for the slides motor [0, 1500]
      * @param power          the power to set the motors to
      */
     public void moveSlides(int targetPosition, double power) {
-        slides1.setTargetPosition(targetPosition);
+        slides1.setTargetPosition(Range.clip(targetPosition, SLIDES_MIN, SLIDES_MAX));
         slides1.setPower(power);
 
-        slides2.setTargetPosition(targetPosition);
+        slides2.setTargetPosition(Range.clip(targetPosition, SLIDES_MIN, SLIDES_MAX));
         slides2.setPower(power);
     }
 
@@ -876,6 +846,7 @@ public class Robot {
 
     public enum DeployState {
         REST,
+        GO_TO_REST,
         MIDDLE,
         TOP,
         SHARED,
@@ -893,7 +864,7 @@ public class Robot {
     }
 
     public enum BoxState {
-        COLLECT,
+        DOWN,
         UP,
         DROP
     }

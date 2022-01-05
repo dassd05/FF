@@ -28,7 +28,7 @@ public class Teleop extends LinearOpMode {
             public void onButtonPress(Button button) {
                 super.onButtonPress(button);
                 if (button == Button.left_bumper)
-                    robot.dropoffBox();
+                    robot.boxDrop();
             }
         };
         //toggles intake on/off with right bumper
@@ -60,14 +60,12 @@ public class Teleop extends LinearOpMode {
 
                 if (button == Button.dpad_up) robot.deployTop();
                 else if (button == Button.dpad_right) robot.deployMiddle();
-                else if (button == Button.dpad_left) robot.deployShared();
-                else if (button == Button.dpad_down) robot.deployRest();
+                else if (button == Button.dpad_down) robot.deployShared();
+                else if (button == Button.dpad_left) robot.deployRest();
             }
         };
 
         waitForStart();
-
-        buttonCoolDown.reset();
 
         while (opModeIsActive()) {
             double forward = -gamepad1.left_stick_y;
@@ -83,13 +81,8 @@ public class Teleop extends LinearOpMode {
             // up and down -> vertical slides adjust
             // right -> horizontal extends out of robot
             // left -> horizontal extends into robot
-            if (gamepad1.right_bumper) {
-                if (buttonCoolDown.time() >= Constants.FAST_COOL_DOWN)
-                    adjustStuff();
-            } else {
-                if (buttonCoolDown.time() >= Constants.NORMAL_COOL_DOWN)
-                    adjustStuff();
-            }
+            // the cooldown ensures that the adjustment speed is consistent, despite fluctuating looping rate
+            if (buttonCoolDown.time() > 20) adjustStuff();
 
 //            robot.moveSlides(robot.desiredSlidesPosition, robot.slidesPower);
 //            robot.moveLinkage(Range.clip(robot.linkagePosition + robot.linkageAdjustment, 0, .9));
@@ -134,14 +127,15 @@ public class Teleop extends LinearOpMode {
     }
 
     public void adjustStuff() {
+        int m = gamepad1.right_bumper ? 2 : 1;
         if (gamepad1.dpad_right)
-            robot.linkageAdjust(Constants.LINKAGE_ADJUSTMENT);
+            robot.linkageAdjust(Constants.LINKAGE_ADJUSTMENT * m);
         if (gamepad1.dpad_left)
-            robot.linkageAdjust(-Constants.LINKAGE_ADJUSTMENT);
+            robot.linkageAdjust(-Constants.LINKAGE_ADJUSTMENT * m);
         if (gamepad1.dpad_up)
-            robot.slidesAdjust(Constants.SLIDES_ADJUSTMENT);
+            robot.slidesAdjust(Constants.SLIDES_ADJUSTMENT * m);
         if (gamepad1.dpad_down)
-            robot.slidesAdjust(-Constants.SLIDES_ADJUSTMENT);
+            robot.slidesAdjust(-Constants.SLIDES_ADJUSTMENT * m);
 
         buttonCoolDown.reset();
     }
