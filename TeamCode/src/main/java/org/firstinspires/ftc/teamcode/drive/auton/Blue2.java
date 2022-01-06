@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.drive.auton.BaseAuton;
 
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "A", name = "Blue Right", preselectTeleOp = "BlueTele")
+@Autonomous(group = "A", name = "\uD83D\uDD35Blue Right", preselectTeleOp = "TeleOp")
 public class Blue2 extends BaseAuton {
 
     @Override

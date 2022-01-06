@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.teleop;
 
+import android.util.Log;
+import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -16,6 +18,11 @@ public class Teleop extends LinearOpMode {
     public ElapsedTime buttonCoolDown = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public boolean intakeOn = false;
     public boolean carouselOn = false;
+
+    public ElapsedTime rumbleCoolDown = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+    public int songID = 0;
+    public boolean songPreloaded = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -65,8 +72,17 @@ public class Teleop extends LinearOpMode {
             }
         };
 
+        songID = hardwareMap.appContext.getResources().getIdentifier("song", "raw", hardwareMap.appContext.getPackageName());
+        if (songID != 0) songPreloaded = SoundPlayer.getInstance().preload(hardwareMap.appContext, songID);
+
         waitForStart();
 
+        if (songPreloaded) {
+            SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, songID);
+            Log.i("TELEOP", "Song started playing");
+        } else {
+            Log.i("TELEOP", "Song couldn't be preloaded");
+        }
         while (opModeIsActive()) {
             double forward = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
@@ -113,6 +129,10 @@ public class Teleop extends LinearOpMode {
             else
                 robot.intakeOff();
 
+            if (rumbleCoolDown.time() > 100 && (gamepad1.right_stick_x != 0 || gamepad1.left_stick_y != 0)) {
+                gamepad1.rumble(Math.abs(gamepad1.right_stick_x), Math.abs(gamepad1.left_stick_y), 100);
+                rumbleCoolDown.reset();
+            }
 
             telemetry.addData("power", robot.slidesPower);
             telemetry.addData("desired slides position", robot.slidesPosition);

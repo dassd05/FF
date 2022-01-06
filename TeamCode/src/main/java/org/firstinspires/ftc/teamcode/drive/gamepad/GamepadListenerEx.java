@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.gamepad;
 
+import androidx.annotation.CallSuper;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import java.util.HashSet;
@@ -21,29 +22,29 @@ public class GamepadListenerEx extends GamepadListener {
         this.gamepad = gamepad;
     }
 
-    @Override
+    @Override @CallSuper
     public void onLeftStickMove(float x, float y, float dx, float dy) {
         lastLeftStickX = x;
         lastLeftStickY = y;
     }
-    @Override
+    @Override @CallSuper
     public void onRightStickMove(float x, float y, float dx, float dy) {
         lastRightStickX = x;
         lastRightStickY = y;
     }
-    @Override
+    @Override @CallSuper
     public void onLeftTriggerMove(float x, float dx) {
         lastLeftTrigger = x;
     }
-    @Override
+    @Override @CallSuper
     public void onRightTriggerMove(float x, float dx) {
         lastRightTrigger = x;
     }
-    @Override
+    @Override @CallSuper
     public void onButtonPress(Button button) {
         pressedButtons.add(button);
     }
-    @Override
+    @Override @CallSuper
     public void onButtonRelease(Button button) {
         pressedButtons.remove(button);
     }
