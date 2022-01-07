@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.drive.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Disabled
 @TeleOp(name = "BoxMaxTest", group = "1")
 public class BoxMaxTest extends LinearOpMode {
 

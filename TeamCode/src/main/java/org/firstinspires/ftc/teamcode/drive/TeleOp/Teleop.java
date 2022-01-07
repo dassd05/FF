@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.drive.TeleOp;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -12,10 +11,8 @@ import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Disabled
-@Deprecated
 @TeleOp(name = "TeleOp", group = "1")
-public class BlueTele extends LinearOpMode {
+public class Teleop extends LinearOpMode {
 
     Robot r = new Robot(); //instantiate Robot object
 
@@ -83,21 +80,6 @@ public class BlueTele extends LinearOpMode {
             else
                 r.setTankPowers(forward, turn, 1.0);
 
-            // right bumper -> zoom zoom adjustment
-            // up and down -> vertical slides adjust
-            // right -> horizontal extends out of robot
-            // left -> horizontal extends into robot
-            if (gamepad1.right_bumper) {
-                if (buttonCoolDown.time() >= FAST_COOL_DOWN)
-                    adjustStuff();
-            } else {
-                if (buttonCoolDown.time() >= NORMAL_COOL_DOWN)
-                    adjustStuff();
-            }
-
-            r.moveSlides(r.desiredSlidesPosition, r.power);
-            r.moveLinkage(Range.clip(r.position + r.linkageAdjustment, 0, .9));
-
 
             // gp2 left bumper -> carousel on
             if (carouselOn) {
@@ -125,7 +107,19 @@ public class BlueTele extends LinearOpMode {
                 r.intakeOff();
 
 
-            r.updateAllStates(); //state machine stuff
+            // right bumper -> slow down adjustment
+            // up and down -> vertical slides adjust
+            // right -> horizontal extends out of robot
+            // left -> horizontal extends into robot
+            if (gamepad1.right_bumper) {
+                if (buttonCoolDown.time() >= NORMAL_COOL_DOWN)
+                    adjustStuff();
+            } else {
+                if (buttonCoolDown.time() >= FAST_COOL_DOWN)
+                    adjustStuff();
+            }
+
+            r.updateAll();
 
             telemetry.addData("power", r.power);
             telemetry.addData("desired slides position", r.desiredSlidesPosition);

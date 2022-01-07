@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.drive.Autons;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.Robot;
 
+@Disabled
 @Deprecated
 @Autonomous(name = "BadAutonBlue", group = "1")
 public class BadAutonBlue extends LinearOpMode {

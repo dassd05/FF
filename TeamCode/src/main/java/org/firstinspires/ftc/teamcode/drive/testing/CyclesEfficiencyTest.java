@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.drive.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Disabled
 @TeleOp
 public class CyclesEfficiencyTest extends LinearOpMode {
 

@@ -2,10 +2,7 @@ package org.firstinspires.ftc.teamcode.drive.testing;
 
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
 @Deprecated
 public class LocalizationTesting {

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.TeleOp;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.drive.Robot;
 import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 
-
+@Disabled
 @TeleOp(name = "Test", group = "1")
 public class Test extends LinearOpMode {
 

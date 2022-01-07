@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Constants;
+package org.firstinspires.ftc.teamcode.drive;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
@@ -15,7 +15,7 @@ public class Constants {
     public static double BOX_ROTATION_UP = 0.56;
     public static double BOX_ROTATION_DEPLOY = 0.95;
 
-    public static double ROTATE_TIME = 275;
+    public static double ROTATE_TIME = 450;
 
     //TODO: min and max positions to avoid going too far
     public static double SLIDES_MAX = 1500;
@@ -26,7 +26,7 @@ public class Constants {
 
     //TODO: adjust to driver preference
     public static long FAST_COOL_DOWN = 25;
-    public static long NORMAL_COOL_DOWN = 125;
+    public static long NORMAL_COOL_DOWN = 100;
 
 
     public static int TOP = 1000;

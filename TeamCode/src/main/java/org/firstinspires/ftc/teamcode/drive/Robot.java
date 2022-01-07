@@ -35,7 +35,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 import java.util.*;
 
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.pipeline;
-import static org.firstinspires.ftc.teamcode.drive.Constants.Constants.*;
+import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
 
 public class Robot {
@@ -414,6 +414,12 @@ public class Robot {
         updateBoxState();
     }
 
+    public void updateAll() {
+        updateAllStates();
+        moveSlides(desiredSlidesPosition, power);
+        moveLinkage(Range.clip(position + linkageAdjustment, 0, .9));
+    }
+
     public double linkageAdjustment = 0.0;
 
     public void linkageAdjust(double adjust) {
@@ -745,5 +751,4 @@ public class Robot {
             module.clearBulkCache();
         }
     }
-
 }
