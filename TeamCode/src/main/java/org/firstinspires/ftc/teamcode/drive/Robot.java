@@ -26,6 +26,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.drive.Autons.Blue.Blue2;
+import org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -212,11 +214,11 @@ public class Robot {
                 if (firstTime) {
                     resetSlidesAdjustment();
                     resetLinkageAdjustment();
+                    collectBox();
+                    firstTime = false;
                 }
 
                 position = 0;
-
-                collectBox();
 
                 switch (dropState) {
                     case DROP:
@@ -254,7 +256,7 @@ public class Robot {
                     power = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                        position = .3;
                 }
                 break;
 
@@ -269,7 +271,7 @@ public class Robot {
                     power = .85;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                        position = .3;
                 }
                 break;
 
@@ -284,7 +286,7 @@ public class Robot {
                     power = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                        position = .3;
                 }
                 break;
 

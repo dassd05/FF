@@ -11,9 +11,9 @@ import java.util.*;
 public class Constants {
 
     //TODO: servo positions
-    public static double BOX_ROTATION_DOWN = 0.17;
-    public static double BOX_ROTATION_UP = 0.56;
-    public static double BOX_ROTATION_DEPLOY = 0.95;
+    public static double BOX_ROTATION_DOWN = 0.2;
+    public static double BOX_ROTATION_UP = 0.63;
+    public static double BOX_ROTATION_DEPLOY = .96;
 
     public static double ROTATE_TIME = 450;
 
@@ -38,7 +38,7 @@ public class Constants {
     public static double LINKAGE_SAFE_EXTEND = 120;
 
     //TODO: fix these adjustments as necessary
-    public static double LINKAGE_ADJUSTMENT = .01;
+    public static double LINKAGE_ADJUSTMENT = .014;
     public static int SLIDES_ADJUSTMENT = 5;
 
     public static double INTAKE_POWER = 0.9;

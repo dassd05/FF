@@ -14,7 +14,7 @@ import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
 @Disabled
 @Deprecated
-@TeleOp(name = "TeleOp", group = "1")
+@TeleOp(name = "Blue", group = "1")
 public class BlueTele extends LinearOpMode {
 
     Robot r = new Robot(); //instantiate Robot object

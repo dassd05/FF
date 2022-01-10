@@ -5,9 +5,10 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection;
 import org.firstinspires.ftc.teamcode.drive.Robot;
 
-import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.pipeline;
+import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.*;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
 @Autonomous(group = "A", name = "Red Left", preselectTeleOp = "RedTele")

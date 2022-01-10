@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Disabled
 @TeleOp(name = "BoxMaxTest", group = "1")
 public class BoxMaxTest extends LinearOpMode {
 
@@ -14,7 +13,7 @@ public class BoxMaxTest extends LinearOpMode {
 
     public ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
-    public double position = .55;
+    public double position = .21;
 
     @Override
     public void runOpMode() throws InterruptedException {

@@ -31,9 +31,7 @@ public class Blue1 extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         r.telemetry = telemetry;
-        r.dashboard = FtcDashboard.getInstance();
         r.init(hardwareMap);
-        telemetry = new MultipleTelemetry(telemetry, r.dashboard.getTelemetry());
 
         r.webcamInit(hardwareMap);
 

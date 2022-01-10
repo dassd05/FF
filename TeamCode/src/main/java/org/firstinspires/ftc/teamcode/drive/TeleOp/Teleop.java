@@ -60,6 +60,12 @@ public class Teleop extends LinearOpMode {
 
                 if (button == Button.dpad_left || button == Button.dpad_right)
                     r.deployMiddle();
+
+                if (button == Button.x && r.boxState == BoxState.COLLECT)
+                    r.liftBox();
+                else if (button == Button.x && r.boxState == BoxState.UP)
+                    r.collectBox();
+
             }
         };
 
