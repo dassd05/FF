@@ -38,7 +38,7 @@ public class Constants {
     public static double LINKAGE_SAFE_EXTEND = 120;
 
     //TODO: fix these adjustments as necessary
-    public static double LINKAGE_ADJUSTMENT = .014;
+    public static double LINKAGE_ADJUSTMENT = .015;
     public static int SLIDES_ADJUSTMENT = 5;
 
     public static double INTAKE_POWER = 0.9;

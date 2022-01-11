@@ -127,10 +127,11 @@ public class Teleop extends LinearOpMode {
 
             r.updateAll();
 
-            telemetry.addData("power", r.power);
+            telemetry.addData("linkage position", r.position + r.linkageAdjustment);
             telemetry.addData("desired slides position", r.desiredSlidesPosition);
             telemetry.addData("slides 1 position", r.getSlides1CurrentPosition());
             telemetry.addData("slides 2 position", r.getSlides2CurrentPosition());
+            telemetry.addData("power", r.power);
             telemetry.addData("state", r.deploymentState);
 
             telemetry.update();

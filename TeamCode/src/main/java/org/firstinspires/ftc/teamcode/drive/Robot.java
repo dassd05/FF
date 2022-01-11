@@ -224,8 +224,8 @@ public class Robot {
                     case DROP:
                         if (deployTimer.time() > ROTATE_TIME) {
                             if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
-                                if (slides1.getCurrentPosition() > 35) {
-                                    desiredSlidesPosition = 35;
+                                if (slides1.getCurrentPosition() > 25 && deployTimer.time() < 4000 /*to make sure it moves on*/) {
+                                    desiredSlidesPosition = 25;
                                     power = .85;
                                 } else {
                                     safeDropTimer.reset();
@@ -236,7 +236,7 @@ public class Robot {
                         break;
 
                     case FINAL:
-                        if (safeDropTimer.time() > 250) {
+                        if (safeDropTimer.time() > 200) {
                             desiredSlidesPosition = 0;
                             power = .3;
                         }
