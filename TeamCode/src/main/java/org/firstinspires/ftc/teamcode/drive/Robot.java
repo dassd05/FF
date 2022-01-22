@@ -50,6 +50,8 @@ public class Robot {
 
     public DcMotorEx slides1 = null, slides2 = null;
 
+    public DcMotor port3;
+
     public VoltageSensor batteryVoltageSensor = null;
 
     public BNO055IMU imu = null;
@@ -106,6 +108,18 @@ public class Robot {
         intake = hwMap.get(DcMotor.class, "intake");
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE); //this too
+
+        port3 = hwMap.get(DcMotor.class, "port3");
+
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        port3.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        port3.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 //        rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
 //        leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
@@ -543,21 +557,42 @@ public class Robot {
 
 
     public enum LeftRed {
-
+        FORWARD,
+        TURN,
+        EXTEND,
+        DROP,
+        FORWARD2,
+        TURN2,
+        PARK,
+        FINISH
     }
 
     public static LeftRed LeftRedState;
 
 
     public enum MiddleRed {
-
+        FORWARD,
+        TURN,
+        EXTEND,
+        DROP,
+        FORWARD2,
+        TURN2,
+        PARK,
+        FINISH
     }
 
     public static MiddleRed MiddleRedState;
 
 
     public enum RightRed {
-
+        FORWARD,
+        TURN,
+        EXTEND,
+        DROP,
+        FORWARD2,
+        TURN2,
+        PARK,
+        FINISH
     }
 
     public static RightRed RightRedState;
@@ -574,7 +609,7 @@ public class Robot {
     }
 
     public double getAngle() {
-        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        return -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
         //might want to experiment with extrinsic, but Im not sure if it will actually reduce drift
     }
 
@@ -597,6 +632,23 @@ public class Robot {
         backLeft.setPower((forward + turn) * multiplier);
         frontRight.setPower((forward - turn) * multiplier);
         backRight.setPower((forward - turn) * multiplier);
+    }
+
+    public void gyroStraight(double power, double heading) {
+        double error = (heading - getAngle()) * .025;
+        setTankPowers(power + error, power - error);
+    }
+
+    public void resetWheels() {
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        port3.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        port3.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     ElapsedTime PIDDriveTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -665,6 +717,19 @@ public class Robot {
     }
     public double getRightWheelPos() {
         return encoderTicksToInches(rightEncoder.getCurrentPosition()) * RIGHT_WHEEL_MULTIPLIER;
+    }
+
+    public double backLeftPosition() {
+        return backLeft.getCurrentPosition();
+    }
+    public double frontLeftPosition() {
+        return frontLeft.getCurrentPosition();
+    }
+    public double backRightPosition() {
+        return intake.getCurrentPosition();
+    }
+    public double frontRightPosition() {
+        return -port3.getCurrentPosition();
     }
 
 

@@ -11,9 +11,9 @@ import java.util.*;
 public class Constants {
 
     //TODO: servo positions
-    public static double BOX_ROTATION_DOWN = 0.2;
-    public static double BOX_ROTATION_UP = 0.63;
-    public static double BOX_ROTATION_DEPLOY = .96;
+    public static double BOX_ROTATION_DOWN = 0.12;
+    public static double BOX_ROTATION_UP = 0.51;
+    public static double BOX_ROTATION_DEPLOY = .97;
 
     public static double ROTATE_TIME = 450;
 
@@ -58,11 +58,9 @@ public class Constants {
     //TODO: tune odo constants
 
     //box detecting constants
-    public static double THRESHOLD = 0.0;
-
-    public static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(500, 500);
-    public static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(750, 500);
-    public static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(1000, 500);
+    public static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(0, 330);
+    public static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(430, 330);
+    public static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(860, 330);
 
 
     public static final int REGION_WIDTH = 100;

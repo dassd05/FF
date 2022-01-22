@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@TeleOp(name = "TeleOp", group = "1")
+@TeleOp(name = "Teleop", group = "1")
 public class Teleop extends LinearOpMode {
 
     Robot r = new Robot(); //instantiate Robot object

@@ -54,9 +54,9 @@ public class BoxPositionDetection {
         Mat region1_Cb, region2_Cb, region3_Cb;
         Mat YCrCb = new Mat();
         Mat Cb = new Mat();
-        int avg1, avg2, avg3;
+        public static int avg1, avg2, avg3;
 
-        public volatile BoxPosition position;
+        public volatile BoxPosition position = BoxPosition.MIDDLE;
 
         void inputToCb(Mat input)
         {
@@ -103,10 +103,10 @@ public class BoxPositionDetection {
                     BLUE,
                     2);
 
-            int greater1or2 = Math.max(avg1, avg2);
-            int greatest = Math.max(greater1or2, avg3);
+            int min1or2 = Math.min(avg1, avg2);
+            int min = Math.min(min1or2, avg3);
 
-            if(greatest == avg1) {
+            if(min == avg1) {
                 position = BoxPosition.LEFT;
 
                 Imgproc.rectangle(
@@ -116,7 +116,7 @@ public class BoxPositionDetection {
                         GREEN,
                         -1);
             }
-            else if(greatest == avg2) {
+            else if(min == avg2) {
                 position = BoxPosition.MIDDLE;
 
                 Imgproc.rectangle(
@@ -126,7 +126,7 @@ public class BoxPositionDetection {
                         GREEN,
                         -1);
             }
-            else if(greatest == avg3) {
+            else if(min == avg3) {
                 position = BoxPosition.RIGHT;
 
                 Imgproc.rectangle(
