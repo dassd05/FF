@@ -143,8 +143,12 @@ public class Teleop extends LinearOpMode {
     public void adjustStuff() {
         if (gamepad1.dpad_right)
             r.linkageAdjust(LINKAGE_ADJUSTMENT);
-        if (gamepad1.dpad_left)
-            r.linkageAdjust(-LINKAGE_ADJUSTMENT);
+        if (gamepad1.dpad_left) {
+            if (r.position + r.linkageAdjustment >= .5) //for zoom zoom adjustment when its super extended
+                r.linkageAdjust(-LINKAGE_ADJUSTMENT * 2.75);
+            else
+                r.linkageAdjust(-LINKAGE_ADJUSTMENT);
+        }
         if (gamepad1.dpad_up)
             r.slidesAdjust(SLIDES_ADJUSTMENT);
         if (gamepad1.dpad_down)

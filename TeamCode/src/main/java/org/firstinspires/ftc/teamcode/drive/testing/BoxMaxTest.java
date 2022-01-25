@@ -13,7 +13,7 @@ public class BoxMaxTest extends LinearOpMode {
 
     public ElapsedTime timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
-    public double position = .95;
+    public double position = .96;
 
     @Override
     public void runOpMode() throws InterruptedException {

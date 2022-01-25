@@ -40,7 +40,7 @@ public class RedLeft extends LinearOpMode {
 
     double distance1 = 800;
     double angle1 = -58;
-    double distance2 = 500;
+    double distance2 = 650;
     double angle2 = -90;
     double distance3 = 1845;
 
