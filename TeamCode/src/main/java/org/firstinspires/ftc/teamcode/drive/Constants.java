@@ -11,9 +11,9 @@ import java.util.*;
 public class Constants {
 
     //TODO: servo positions
-    public static double BOX_ROTATION_DOWN = 0.21;
-    public static double BOX_ROTATION_UP = 0.63;
-    public static double BOX_ROTATION_DEPLOY = .96;
+    public static double BOX_ROTATION_DOWN = 0.27;
+    public static double BOX_ROTATION_UP = 0.69;
+    public static double BOX_ROTATION_DEPLOY = 1;
 
     public static double ROTATE_TIME = 450;
 
@@ -21,8 +21,10 @@ public class Constants {
     public static double SLIDES_MAX = 1500;
     public static double SLIDES_MIN = 0;
 
-    public static double LINKAGE_1_MAX = 0.0;
-    public static double LINKAGE_2_MAX = 0.0;
+    public static double LINKAGE_1_MAX_OUT = 0.05;
+    public static double LINKAGE_1_MAX_IN = .75;
+    public static double LINKAGE_2_MAX_OUT = 0.65;
+    public static double LINKAGE_2_MAX_IN = .0;
 
     //TODO: adjust to driver preference
     public static long FAST_COOL_DOWN = 25;
@@ -38,7 +40,7 @@ public class Constants {
     public static double LINKAGE_SAFE_EXTEND = 120;
 
     //TODO: fix these adjustments as necessary
-    public static double LINKAGE_ADJUSTMENT = .015;
+    public static double LINKAGE_ADJUSTMENT = .023;
     public static int SLIDES_ADJUSTMENT = 5;
 
     public static double INTAKE_POWER = 0.9;

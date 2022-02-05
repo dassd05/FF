@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Autons.Blue;
+package org.firstinspires.ftc.teamcode.drive.Autons.Red;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -17,8 +17,8 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg3;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "A", name = "Blue Warehouse", preselectTeleOp = "Teleop")
-public class BlueLeft extends LinearOpMode {
+@Autonomous(group = "A", name = "Red Warehouse", preselectTeleOp = "Teleop")
+public class RedWarehouse extends LinearOpMode {
 
     Robot r = new Robot();
 
@@ -39,10 +39,10 @@ public class BlueLeft extends LinearOpMode {
     boolean isDeployed = false;
 
     double distance1 = 800;
-    double angle1 = 58;
+    double angle1 = -58;
     double distance2 = 650;
-    double angle2 = 90;
-    double distance3 = 1845;
+    double angle2 = -90;
+    double distance3 = 1875;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -111,7 +111,7 @@ public class BlueLeft extends LinearOpMode {
                         case TURN:
                             r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
 
-                            if (Math.abs(r.getAngle()) >= angle1 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
@@ -156,14 +156,14 @@ public class BlueLeft extends LinearOpMode {
                             break;
                         case TURN2:
                             r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= angle2 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 LeftRedState = LeftRed.PARK;
                             }
                             break;
                         case PARK:
-                            r.gyroStraight(.85, 90);
+                            r.gyroStraight(.85, -90);
                             if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3) ||
                                     Math.abs(r.frontLeftPosition()) >= Math.abs(distance3) ||
                                     Math.abs(r.backRightPosition()) >= Math.abs(distance3) ||
@@ -193,7 +193,7 @@ public class BlueLeft extends LinearOpMode {
                         case TURN:
                             r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
 
-                            if (Math.abs(r.getAngle()) >= angle1 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
@@ -238,14 +238,14 @@ public class BlueLeft extends LinearOpMode {
                             break;
                         case TURN2:
                             r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= angle2 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 RightRedState = RightRed.PARK;
                             }
                             break;
                         case PARK:
-                            r.gyroStraight(.85, 90);
+                            r.gyroStraight(.85, -90);
                             if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3) ||
                                     Math.abs(r.frontLeftPosition()) >= Math.abs(distance3) ||
                                     Math.abs(r.backRightPosition()) >= Math.abs(distance3) ||
@@ -275,7 +275,7 @@ public class BlueLeft extends LinearOpMode {
                         case TURN:
                             r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
 
-                            if (Math.abs(r.getAngle()) >= angle1 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
@@ -320,14 +320,14 @@ public class BlueLeft extends LinearOpMode {
                             break;
                         case TURN2:
                             r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= angle2 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 MiddleRedState = MiddleRed.PARK;
                             }
                             break;
                         case PARK:
-                            r.gyroStraight(.85, 90);
+                            r.gyroStraight(.85, -90);
                             if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3) ||
                                     Math.abs(r.frontLeftPosition()) >= Math.abs(distance3) ||
                                     Math.abs(r.backRightPosition()) >= Math.abs(distance3) ||

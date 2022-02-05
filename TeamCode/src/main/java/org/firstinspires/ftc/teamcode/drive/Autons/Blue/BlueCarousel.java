@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.Autons.Red;
+package org.firstinspires.ftc.teamcode.drive.Autons.Blue;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -17,8 +17,8 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg3;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "A", name = "Red Warehouse", preselectTeleOp = "Teleop")
-public class RedLeft extends LinearOpMode {
+@Autonomous(group = "A", name = "Blue Carousel", preselectTeleOp = "Teleop")
+public class BlueCarousel extends LinearOpMode {
 
     Robot r = new Robot();
 
@@ -144,33 +144,10 @@ public class RedLeft extends LinearOpMode {
                             }
                             break;
                         case FORWARD2:
-                            r.gyroStraight(.85, 0);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2)) {
-                                r.setTankPowers(0.0, 0.0);
-                                r.autonWaitTimer.reset();
-                                LeftRedState = LeftRed.TURN2;
-                            }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
-                                r.setTankPowers(0, 0);
-                                r.resetWheels();
-                                LeftRedState = LeftRed.PARK;
-                            }
                             break;
                         case PARK:
-                            r.gyroStraight(.85, -90);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance3)) {
-                                r.setTankPowers(0.0, 0.0);
-                                LeftRedState = LeftRed.FINISH;
-                            }
                             break;
                         case FINISH:
                             break;
@@ -226,33 +203,10 @@ public class RedLeft extends LinearOpMode {
                             }
                             break;
                         case FORWARD2:
-                            r.gyroStraight(.5, 0);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2)) {
-                                r.setTankPowers(0.0, 0.0);
-                                r.autonWaitTimer.reset();
-                                RightRedState = RightRed.TURN2;
-                            }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
-                                r.setTankPowers(0, 0);
-                                r.resetWheels();
-                                RightRedState = RightRed.PARK;
-                            }
                             break;
                         case PARK:
-                            r.gyroStraight(.85, -90);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance3)) {
-                                r.setTankPowers(0.0, 0.0);
-                                RightRedState = RightRed.FINISH;
-                            }
                             break;
                         case FINISH:
                             break;
@@ -308,33 +262,10 @@ public class RedLeft extends LinearOpMode {
                             }
                             break;
                         case FORWARD2:
-                            r.gyroStraight(.5, 0);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2)) {
-                                r.setTankPowers(0.0, 0.0);
-                                r.autonWaitTimer.reset();
-                                MiddleRedState = MiddleRed.TURN2;
-                            }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
-                                r.setTankPowers(0, 0);
-                                r.resetWheels();
-                                MiddleRedState = MiddleRed.PARK;
-                            }
                             break;
                         case PARK:
-                            r.gyroStraight(.85, -90);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance3)) {
-                                r.setTankPowers(0.0, 0.0);
-                                MiddleRedState = MiddleRed.FINISH;
-                            }
                             break;
                         case FINISH:
                             break;

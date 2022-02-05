@@ -270,7 +270,7 @@ public class Robot {
                     power = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .3;
+                        position = .4;
                 }
                 break;
 
@@ -285,7 +285,7 @@ public class Robot {
                     power = .85;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .3;
+                        position = .4;
                 }
                 break;
 
@@ -300,7 +300,7 @@ public class Robot {
                     power = .8;
 
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .3;
+                        position = .4;
                 }
                 break;
 
@@ -343,8 +343,9 @@ public class Robot {
     }
 
     public void moveLinkage(double targetPosition) {
-        linkage2.setPosition(targetPosition);
-        linkage1.setPosition(1-targetPosition);
+        // target position is from 0 to 1 max in to out
+        linkage1.setPosition(Range.scale(targetPosition, 0, 1, LINKAGE_1_MAX_IN, LINKAGE_1_MAX_OUT));
+        linkage2.setPosition(Range.scale(targetPosition, 0, 1, LINKAGE_2_MAX_IN, LINKAGE_2_MAX_OUT));
     }
 
     public enum IntakeState {
@@ -433,7 +434,7 @@ public class Robot {
     public void updateAll() {
         updateAllStates();
         moveSlides(desiredSlidesPosition, power);
-        moveLinkage(Range.clip(position + linkageAdjustment, 0, .9));
+        moveLinkage(Range.clip(position + linkageAdjustment, 0, 1));
     }
 
     public double linkageAdjustment = 0.0;
@@ -564,7 +565,8 @@ public class Robot {
         FORWARD2,
         TURN2,
         PARK,
-        FINISH
+        FINISH,
+        CAROUSEL
     }
 
     public static LeftRed LeftRedState;
@@ -578,7 +580,8 @@ public class Robot {
         FORWARD2,
         TURN2,
         PARK,
-        FINISH
+        FINISH,
+        CAROUSEL
     }
 
     public static MiddleRed MiddleRedState;
@@ -592,7 +595,8 @@ public class Robot {
         FORWARD2,
         TURN2,
         PARK,
-        FINISH
+        FINISH,
+        CAROUSEL
     }
 
     public static RightRed RightRedState;
