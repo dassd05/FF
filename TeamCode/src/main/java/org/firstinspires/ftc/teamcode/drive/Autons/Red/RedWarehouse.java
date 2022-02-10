@@ -121,20 +121,26 @@ public class RedWarehouse extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployShared();
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.1);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.42);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 LeftRedState = LeftRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -203,20 +209,26 @@ public class RedWarehouse extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployTop();
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.06);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.34);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 RightRedState = RightRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -285,20 +297,27 @@ public class RedWarehouse extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployMiddle();
+                                r.slidesAdjust(-10);
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.06);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.38);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 MiddleRedState = MiddleRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
