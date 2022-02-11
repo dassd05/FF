@@ -17,7 +17,7 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg3;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "A", name = "Red Warehouse", preselectTeleOp = "Teleop")
+@Autonomous(group = "1", name = "Red Warehouse", preselectTeleOp = "Teleop")
 public class RedWarehouse extends LinearOpMode {
 
     Robot r = new Robot();
@@ -39,10 +39,10 @@ public class RedWarehouse extends LinearOpMode {
     boolean isDeployed = false;
 
     double distance1 = 800;
-    double angle1 = -58;
+    double angle1 = -60;
     double distance2 = 650;
     double angle2 = -90;
-    double distance3 = 1875;
+    double distance3 = 1885;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -109,7 +109,7 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -161,7 +161,7 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle2) * .009, (r.getAngle() - angle2) * .009);
                             if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
@@ -197,7 +197,7 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -249,7 +249,7 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle2) * .009, (r.getAngle() - angle2) * .009);
                             if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
@@ -285,7 +285,7 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -338,7 +338,7 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle2) * .009, (r.getAngle() - angle2) * .009);
                             if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();

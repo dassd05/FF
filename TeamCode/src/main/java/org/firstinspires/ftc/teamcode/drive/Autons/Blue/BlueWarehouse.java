@@ -17,7 +17,7 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg3;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "A", name = "Blue Warehouse", preselectTeleOp = "Teleop")
+@Autonomous(group = "1", name = "Blue Warehouse", preselectTeleOp = "Teleop")
 public class BlueWarehouse extends LinearOpMode {
 
     Robot r = new Robot();
@@ -42,7 +42,7 @@ public class BlueWarehouse extends LinearOpMode {
     double angle1 = 58;
     double distance2 = 650;
     double angle2 = 90;
-    double distance3 = 1875;
+    double distance3 = 1885;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -109,9 +109,9 @@ public class BlueWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
-                            if (Math.abs(r.getAngle()) >= angle1 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
@@ -121,20 +121,26 @@ public class BlueWarehouse extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployShared();
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.1);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.42);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 LeftRedState = LeftRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -155,8 +161,8 @@ public class BlueWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= angle2 || r.autonWaitTimer.time() >= 3500) {
+                            r.setTankPowers(-(r.getAngle() - angle2) * .009, (r.getAngle() - angle2) * .009);
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 LeftRedState = LeftRed.PARK;
@@ -191,9 +197,9 @@ public class BlueWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
-                            if (Math.abs(r.getAngle()) >= angle1 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
@@ -203,20 +209,26 @@ public class BlueWarehouse extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployTop();
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.06);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.34);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 RightRedState = RightRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -237,8 +249,8 @@ public class BlueWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= angle2 || r.autonWaitTimer.time() >= 3500) {
+                            r.setTankPowers(-(r.getAngle() - angle2) * .009, (r.getAngle() - angle2) * .009);
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 RightRedState = RightRed.PARK;
@@ -273,9 +285,9 @@ public class BlueWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
-                            if (Math.abs(r.getAngle()) >= angle1 || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
@@ -285,20 +297,27 @@ public class BlueWarehouse extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployMiddle();
+                                r.slidesAdjust(-10);
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.06);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.38);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 MiddleRedState = MiddleRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -319,8 +338,8 @@ public class BlueWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .012, (r.getAngle() - angle2) * .012);
-                            if (Math.abs(r.getAngle()) >= angle2 || r.autonWaitTimer.time() >= 3500) {
+                            r.setTankPowers(-(r.getAngle() - angle2) * .009, (r.getAngle() - angle2) * .009);
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 MiddleRedState = MiddleRed.PARK;

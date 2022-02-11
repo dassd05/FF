@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
 import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@TeleOp(name = "Teleop", group = "1")
+@TeleOp(name = "Teleop", group = "0")
 public class Teleop extends LinearOpMode {
 
     Robot r = new Robot(); //instantiate Robot object
@@ -31,7 +31,7 @@ public class Teleop extends LinearOpMode {
             @Override
             public void onButtonPress(Button button) {
                 super.onButtonPress(button);
-                if (button == Button.left_bumper)
+                if (button == Button.left_bumper && r.deploymentState != deployState.REST)
                     r.dropoffBox();
             }
         };
