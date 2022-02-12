@@ -55,8 +55,10 @@ public class Teleop extends LinearOpMode {
 
                 if (button == Button.dpad_down && r.deploymentState != deployState.REST)
                     r.deployRest();
-                else if (button == Button.dpad_down)
+                else if (button == Button.dpad_down) {
                     r.deployShared();
+                    r.linkageAdjust(-.2);
+                }
 
                 if (button == Button.dpad_left || button == Button.dpad_right)
                     r.deployMiddle();
@@ -141,8 +143,12 @@ public class Teleop extends LinearOpMode {
     }
 
     public void adjustStuff() {
-        if (gamepad1.dpad_right)
-            r.linkageAdjust(LINKAGE_ADJUSTMENT);
+        if (gamepad1.dpad_right) {
+            if (r.deploymentState == deployState.SHARED)
+                r.linkageAdjust(LINKAGE_ADJUSTMENT/1.6);
+            else
+                r.linkageAdjust(LINKAGE_ADJUSTMENT);
+        }
         if (gamepad1.dpad_left) {
             if (r.position + r.linkageAdjustment >= .5) //for zoom zoom adjustment when its super extended
                 r.linkageAdjust(-LINKAGE_ADJUSTMENT * 2.75);

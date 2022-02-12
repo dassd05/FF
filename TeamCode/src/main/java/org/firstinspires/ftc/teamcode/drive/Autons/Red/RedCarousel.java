@@ -39,7 +39,7 @@ public class RedCarousel extends LinearOpMode {
     boolean isDeployed = false;
 
     double distance1 = 800;
-    double angle1 = 58;
+    double angle1 = 60;
     double distance2 = 650;
     double angle2 = -90;
     double distance3 = 1845;
@@ -109,7 +109,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -121,20 +121,26 @@ public class RedCarousel extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployShared();
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.1);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.42);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 LeftRedState = LeftRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -168,7 +174,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -180,20 +186,26 @@ public class RedCarousel extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployTop();
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.06);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.34);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 RightRedState = RightRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -227,7 +239,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .012, (r.getAngle() - angle1) * .012);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -239,20 +251,27 @@ public class RedCarousel extends LinearOpMode {
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployMiddle();
+                                r.slidesAdjust(-10);
+                                r.linkageAdjust(-.3);
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 750) {
-                                r.linkageAdjust(.06);
+                            if (r.autonWaitTimer.time() >= 1250) {
+                                r.linkageAdjust(.38);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                firstTime = true;
                                 MiddleRedState = MiddleRed.DROP;
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 750 && runFSM) {
+                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
                                 r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750){
+                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
+                                    r.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (r.autonWaitTimer.time() >= 2650){
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
