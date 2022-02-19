@@ -15,6 +15,7 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg1;
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg2;
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg3;
+import static org.firstinspires.ftc.teamcode.drive.Constants.CAP_HIGH;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
 @Autonomous(group = "A", name = "Blue Carousel", preselectTeleOp = "Teleop")
@@ -82,6 +83,8 @@ public class BlueCarousel extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) return;
+
+        r.capper.setPosition(CAP_HIGH);
 
         LeftRedState = LeftRed.FORWARD;
         MiddleRedState = MiddleRed.FORWARD;

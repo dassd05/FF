@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.drive.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -20,12 +22,24 @@ public class Teleop extends LinearOpMode {
 
     boolean intakeOn = false;
     boolean carouselOn = false;
+    boolean lastCarouselOn = false;
+
+    double power = 0.0;
+    int cycles = 0;
+
+    public double Some_position = CAP_HIGH;
+    public double Some_adjustment = 0.0;
+    boolean capUp = true;
+
+    public CRServo carouselServo;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
         r.telemetry = telemetry;
         r.init(hardwareMap);
+
+        carouselServo = hardwareMap.get(CRServo.class, "carousel2");
 
         GamepadListenerEx gamepadListener1 = new GamepadListenerEx(gamepad1) {
             @Override
@@ -68,6 +82,11 @@ public class Teleop extends LinearOpMode {
                 else if (button == Button.x && r.boxState == BoxState.UP)
                     r.collectBox();
 
+                if (button == Button.b) {
+                    capUp = !capUp;
+                    Some_adjustment = 0.0;
+                }
+
             }
         };
 
@@ -91,17 +110,21 @@ public class Teleop extends LinearOpMode {
 
             // gp2 left bumper -> carousel on
             if (carouselOn) {
-                if (gamepad2.right_trigger > 0.5) {
-                    r.carousel1.setPower(-1);
-                    r.carousel2.setPower(1);
-                } else {
-                    r.carousel1.setPower(1);
-                    r.carousel2.setPower(-1);
-                }
+                if (lastCarouselOn)
+                    cycles += 1;
+                if (gamepad2.right_trigger > 0.5)
+                    power = .4 * (Math.pow((1+.012), cycles));
+                else
+                    power = -.4 * (Math.pow((1+.012), cycles));
+
             } else {
-                r.carousel1.setPower(0);
-                r.carousel2.setPower(0);
+                power = 0.0;
+                cycles = 0;
             }
+            lastCarouselOn = carouselOn;
+
+            r.carousel.setPower(power);
+            carouselServo.setPower(power);
 
 
             // gp2 right bumper -> on/off intake
@@ -113,6 +136,14 @@ public class Teleop extends LinearOpMode {
                     r.intakeOn();
             else
                 r.intakeOff();
+
+
+            if (capUp)
+                Some_position = CAP_HIGH;
+            else
+                Some_position = CAP_LOW;
+
+            r.capper.setPosition(Some_position + Some_adjustment);
 
 
             // right bumper -> slow down adjustment
@@ -135,6 +166,7 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("slides 2 position", r.getSlides2CurrentPosition());
             telemetry.addData("power", r.power);
             telemetry.addData("state", r.deploymentState);
+            telemetry.addData("power", power);
 
             telemetry.update();
             gamepadListener1.update();
@@ -159,6 +191,9 @@ public class Teleop extends LinearOpMode {
             r.slidesAdjust(SLIDES_ADJUSTMENT);
         if (gamepad1.dpad_down)
             r.slidesAdjust(-SLIDES_ADJUSTMENT);
+
+        if (Math.abs(gamepad2.left_stick_y) > .1)
+            Some_adjustment += gamepad2.left_stick_y/50.0;
 
         buttonCoolDown.reset();
     }

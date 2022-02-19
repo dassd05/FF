@@ -41,8 +41,8 @@ import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
 
 public class Robot {
-    public Servo boxServo = null, linkage1 = null, linkage2 = null;
-    public CRServoImplEx carousel1 = null, carousel2 = null;
+    public Servo boxServo = null, linkage1 = null, linkage2 = null, capper = null;
+    public CRServo carousel2;
 
     public DcMotor frontLeft = null, backLeft = null, frontRight = null, backRight = null;
 
@@ -50,7 +50,7 @@ public class Robot {
 
     public DcMotorEx slides1 = null, slides2 = null;
 
-    public DcMotor port3;
+    public DcMotor carousel;
 
     public VoltageSensor batteryVoltageSensor = null;
 
@@ -109,17 +109,17 @@ public class Robot {
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE); //this too
 
-        port3 = hwMap.get(DcMotor.class, "port3");
+        carousel = hwMap.get(DcMotor.class, "port3");
 
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        port3.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        carousel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        port3.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        carousel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 //        rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
 //        leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
@@ -129,10 +129,11 @@ public class Robot {
 //        rightEncoder.setDirection(Encoder.Direction.REVERSE);
 
         boxServo = hwMap.get(Servo.class, "boxServo");
-        carousel1 = hwMap.get(CRServoImplEx.class, "carousel1");
-        carousel2 = hwMap.get(CRServoImplEx.class, "carousel2");
+        //carousel1 = hwMap.get(CRServoImplEx.class, "carousel1");
+        carousel2 = hwMap.get(CRServo.class, "carousel2");
         linkage1 = hwMap.get(Servo.class, "linkage1");
         linkage2 = hwMap.get(Servo.class, "linkage2");
+        capper = hwMap.get(Servo.class, "capper");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -647,12 +648,12 @@ public class Robot {
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        port3.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        carousel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        port3.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        carousel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     ElapsedTime PIDDriveTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -733,7 +734,7 @@ public class Robot {
         return intake.getCurrentPosition();
     }
     public double frontRightPosition() {
-        return -port3.getCurrentPosition();
+        return -carousel.getCurrentPosition();
     }
 
 

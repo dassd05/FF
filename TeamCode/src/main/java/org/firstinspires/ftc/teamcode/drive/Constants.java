@@ -11,9 +11,12 @@ import java.util.*;
 public class Constants {
 
     //TODO: servo positions
-    public static double BOX_ROTATION_DOWN = 0.22;
-    public static double BOX_ROTATION_UP = 0.64;
-    public static double BOX_ROTATION_DEPLOY = 0.97;
+    public static double BOX_ROTATION_DOWN = 0.27;
+    public static double BOX_ROTATION_UP = 0.69;
+    public static double BOX_ROTATION_DEPLOY = 1;
+
+    public static double CAP_LOW = 0.95;
+    public static double CAP_HIGH = .27;
 
     public static double ROTATE_TIME = 450;
 

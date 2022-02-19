@@ -15,6 +15,7 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg1;
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg2;
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg3;
+import static org.firstinspires.ftc.teamcode.drive.Constants.CAP_HIGH;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
 @Autonomous(group = "A", name = "Red Carousel", preselectTeleOp = "Teleop")
@@ -40,7 +41,8 @@ public class RedCarousel extends LinearOpMode {
 
     double distance1 = 800;
     double angle1 = 60;
-    double distance2 = 650;
+    double distance2 = 1100;
+    double angle1_2 = 52;
     double angle2 = -90;
     double distance3 = 1845;
 
@@ -81,6 +83,8 @@ public class RedCarousel extends LinearOpMode {
 
         waitForStart();
 
+        r.capper.setPosition(CAP_HIGH);
+
         if (isStopRequested()) return;
 
         LeftRedState = LeftRed.FORWARD;
@@ -109,7 +113,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .0095, (r.getAngle() - angle1) * .0095);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -150,14 +154,26 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case FORWARD2:
+                            r.gyroStraight(.25, angle1_2);
+                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2) ||
+                                    r.autonWaitTimer.time() >= 5000) {
+                                r.setTankPowers(0.1, 0.1);
+                                r.autonWaitTimer.reset();
+                                LeftRedState = LeftRed.TURN2;
+                            }
                             break;
                         case TURN2:
+                            r.carousel2.setPower(1);
                             break;
                         case PARK:
                             break;
                         case FINISH:
                             break;
                     }
+                    telemetry.addData("state", LeftRedState);
                     break;
 
                 case RIGHT_POSITION:
@@ -174,7 +190,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .0095, (r.getAngle() - angle1) * .0095);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -215,14 +231,26 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case FORWARD2:
+                            r.gyroStraight(.25, angle1_2);
+                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2) ||
+                                    r.autonWaitTimer.time() >= 5000) {
+                                r.setTankPowers(0.1, 0.1);
+                                r.autonWaitTimer.reset();
+                                RightRedState = RightRed.TURN2;
+                            }
                             break;
                         case TURN2:
+                            r.carousel2.setPower(1);
                             break;
                         case PARK:
                             break;
                         case FINISH:
                             break;
                     }
+                    telemetry.addData("state", RightRedState);
                     break;
 
                 case MIDDLE_POSITION:
@@ -239,7 +267,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .009, (r.getAngle() - angle1) * .009);
+                            r.setTankPowers(-(r.getAngle() - angle1) * .0095, (r.getAngle() - angle1) * .0095);
 
                             if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
@@ -281,14 +309,26 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case FORWARD2:
+                            r.gyroStraight(.25, angle1_2);
+                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2) ||
+                                    r.autonWaitTimer.time() >= 5000) {
+                                r.setTankPowers(0.1, 0.1);
+                                r.autonWaitTimer.reset();
+                                MiddleRedState = MiddleRed.TURN2;
+                            }
                             break;
                         case TURN2:
+                            r.carousel2.setPower(1);
                             break;
                         case PARK:
                             break;
                         case FINISH:
                             break;
                     }
+                    telemetry.addData("state", MiddleRedState);
                     break;
             }
 
