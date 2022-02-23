@@ -113,9 +113,9 @@ public class Teleop extends LinearOpMode {
                 if (lastCarouselOn)
                     cycles += 1;
                 if (gamepad2.right_trigger > 0.5)
-                    power = .4 * (Math.pow((1+.012), cycles));
+                    power = .4 * (Math.pow((1+.0135), cycles));
                 else
-                    power = -.4 * (Math.pow((1+.012), cycles));
+                    power = -.4 * (Math.pow((1+.0135), cycles));
 
             } else {
                 power = 0.0;
@@ -192,8 +192,12 @@ public class Teleop extends LinearOpMode {
         if (gamepad1.dpad_down)
             r.slidesAdjust(-SLIDES_ADJUSTMENT);
 
-        if (Math.abs(gamepad2.left_stick_y) > .1)
-            Some_adjustment += gamepad2.left_stick_y/50.0;
+        if (Math.abs(gamepad2.left_stick_y) > .1) {
+            if (gamepad2.right_trigger > .5)
+                Some_adjustment += gamepad2.left_stick_y/20.0;
+            else
+                Some_adjustment += gamepad2.left_stick_y/65.0;
+        }
 
         buttonCoolDown.reset();
     }

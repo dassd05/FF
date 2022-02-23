@@ -567,7 +567,8 @@ public class Robot {
         TURN2,
         PARK,
         FINISH,
-        CAROUSEL
+        CAROUSEL,
+        ACTUAL_FINISH
     }
 
     public static LeftRed LeftRedState;
@@ -582,7 +583,8 @@ public class Robot {
         TURN2,
         PARK,
         FINISH,
-        CAROUSEL
+        CAROUSEL,
+        ACTUAL_FINISH
     }
 
     public static MiddleRed MiddleRedState;
@@ -597,8 +599,9 @@ public class Robot {
         TURN2,
         PARK,
         FINISH,
-        CAROUSEL
-    }
+        CAROUSEL,
+        ACTUAL_FINISH
+        }
 
     public static RightRed RightRedState;
 
