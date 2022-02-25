@@ -33,6 +33,8 @@ public class Teleop extends LinearOpMode {
 
     public CRServo carouselServo;
 
+    public ElapsedTime rumbleCooldown = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -156,6 +158,14 @@ public class Teleop extends LinearOpMode {
             } else {
                 if (buttonCoolDown.time() >= FAST_COOL_DOWN)
                     adjustStuff();
+            }
+
+
+            // gamepad rumble
+            if (rumbleCooldown.time() > 100) {
+                rumbleCooldown.reset();
+                gamepad1.rumble(forward, turn, 100); // rumbles when robot is moving
+                gamepad2.rumble(r.power, power, 100); // rumbles when slides or carousel moves
             }
 
             r.updateAll();

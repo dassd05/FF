@@ -20,7 +20,7 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.pipeline;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "A", name = "Blue Right", preselectTeleOp = "Teleop")
+@Autonomous(group = "A", name = "\uD83D\uDD35 Right", preselectTeleOp = "Teleop")
 public class Blue2 extends LinearOpMode {
 
     Robot r = new Robot();

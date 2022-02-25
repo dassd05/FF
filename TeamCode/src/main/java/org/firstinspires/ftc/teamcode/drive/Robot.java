@@ -172,6 +172,7 @@ public class Robot {
         boxState = BoxState.COLLECT;
         dropState = drop.DROP;
 
+        telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
         telemetry.update();
         telemetry.clearAll();
     }
