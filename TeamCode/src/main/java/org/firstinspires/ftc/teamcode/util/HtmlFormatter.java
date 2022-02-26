@@ -1,22 +1,26 @@
 package org.firstinspires.ftc.teamcode.util;
 
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Usage looks like this:
  * <p>
- * {@code String message = new HtmlFormatter("hi").bold().italic().textColor("blue").toString();}
+ * {@code String message = new HtmlFormatter().bold().italic().textColor("blue").format("hi");}
  * </p>
  */
 @SuppressWarnings("unused")
-public class HtmlFormatter {
+public class HtmlFormatter implements Cloneable {
 
-    protected String string;
     protected Set<String> tags;
     protected Map<String, String> cssStyles;
 
-    public HtmlFormatter(String string) {
-        this.string = string;
+
+    public HtmlFormatter() {
         tags = new HashSet<>();
         cssStyles = new HashMap<>();
     }
@@ -27,7 +31,7 @@ public class HtmlFormatter {
      */
     public HtmlFormatter bold() {
         if (!tags.remove("b")) tags.add("b");
-        return this;
+        return clone();
     }
 
     /**
@@ -36,7 +40,7 @@ public class HtmlFormatter {
      */
     public HtmlFormatter italic() {
         if (!tags.remove("i")) tags.add("i");
-        return this;
+        return clone();
     }
 
     /**
@@ -45,7 +49,7 @@ public class HtmlFormatter {
      */
     public HtmlFormatter strikethrough() {
         if (!tags.remove("del")) tags.add("del");
-        return this;
+        return clone();
     }
 
     /**
@@ -54,7 +58,7 @@ public class HtmlFormatter {
      */
     public HtmlFormatter underline() {
         if (!tags.remove("ins")) tags.add("ins");
-        return this;
+        return clone();
     }
 
     /**
@@ -63,7 +67,7 @@ public class HtmlFormatter {
      */
     public HtmlFormatter subscript() {
         if (!tags.remove("sub")) tags.add("sub");
-        return this;
+        return clone();
     }
 
     /**
@@ -72,7 +76,7 @@ public class HtmlFormatter {
      */
     public HtmlFormatter superscript() {
         if (!tags.remove("sup")) tags.add("sup");
-        return this;
+        return clone();
     }
 
     /**
@@ -81,7 +85,7 @@ public class HtmlFormatter {
      */
     public HtmlFormatter small() {
         if (!tags.remove("small")) tags.add("small");
-        return this;
+        return clone();
     }
 
     /**
@@ -93,20 +97,22 @@ public class HtmlFormatter {
      */
     public HtmlFormatter textColor(String color) {
         cssStyles.put("color", color);
-        return this;
+        return clone();
     }
 
     /**
-     * Sets the color of the background, essentially highlighting the text. The color can be a color
+     * IMPORTANT NOTE: DOES NOT APPEAR TO WORK AND WILL BREAK OTHER HTML FUNCTIONS
+     *
+     * <p>Sets the color of the background, essentially highlighting the text. The color can be a color
      * name (eg red, blue, MediumSeaGreen), a hex value (eg #ff0000, #3b72d9), or other color value
-     * (eg rgb(100, 50, 20), hsl(20, 60, 100))
+     * (eg rgb(100, 50, 20), hsl(20, 60, 100))</p>
      *
      * @param color color of the background
      * @return the instance of {@link HtmlFormatter}
      */
     public HtmlFormatter backgroundColor(String color) {
         cssStyles.put("background-color", color);
-        return this;
+        return clone();
     }
 
     /**
@@ -121,7 +127,7 @@ public class HtmlFormatter {
         for (String font : fonts)
             str.append(String.format("'%s', ", font));
         cssStyles.put("font-family", str.substring(0, str.length()-2));
-        return this;
+        return clone();
     }
 
     public HtmlFormatter lineDecorationTypes(String... types) {
@@ -129,47 +135,47 @@ public class HtmlFormatter {
         for (String type : types)
             str += " " + type;
         cssStyles.put("text-decoration-line", str.substring(1));
-        return this;
+        return clone();
     }
 
     public HtmlFormatter lineDecorationColor(String color) {
         cssStyles.put("text-decoration-color", color);
-        return this;
+        return clone();
     }
 
     public HtmlFormatter lineDecorationStyle(String style) {
         cssStyles.put("text-decoration-color", style);
-        return this;
+        return clone();
     }
 
     public HtmlFormatter lineDecorationThickness(String thickness) {
         cssStyles.put("text-decoration-color", thickness);
-        return this;
+        return clone();
     }
 
     public HtmlFormatter textIndent(int pixels) {
         cssStyles.put("text-indent", pixels + "px");
-        return this;
+        return clone();
     }
 
     public HtmlFormatter letterSpacing(int pixels) {
         cssStyles.put("letter-spacing", pixels + "px");
-        return this;
+        return clone();
     }
 
     public HtmlFormatter lineHeight(double height) {
         cssStyles.put("line-height", height + "");
-        return this;
+        return clone();
     }
 
     public HtmlFormatter wordSpacing(int pixels) {
         cssStyles.put("word-spacing", pixels + "px");
-        return this;
+        return clone();
     }
 
     public HtmlFormatter whiteSpace(String type) {
         cssStyles.put("white-space", type);
-        return this;
+        return clone();
     }
 
     /**
@@ -183,11 +189,11 @@ public class HtmlFormatter {
      */
     public HtmlFormatter textShadow(int x, int y, int blur, String color) { // todo multi shadow
         cssStyles.put("text-shadow", String.format("%spx %spx %spx %s", x, y , blur, color));
-        return this;
+        return clone();
     }
 
 
-    private static String escapeHTML(String str) {
+    public static String escapeHTML(String str) {
         return str.replaceAll("<","&lt")
                 .replaceAll(">", "&gt;")
                 .replaceAll(" ", "&nbsp;")
@@ -195,8 +201,7 @@ public class HtmlFormatter {
                 .replaceAll("'", "&apos;");
     }
 
-    @Override
-    public String toString() {
+    public String format(String text) {
         StringBuilder start = new StringBuilder();
         StringBuilder end = new StringBuilder();
         if (!cssStyles.isEmpty()) {
@@ -211,7 +216,24 @@ public class HtmlFormatter {
             start.append(String.format("<%s>", tag));
             end.insert(0, String.format("</%s>", tag));
         }
-        String str = escapeHTML(string);
+        String str = escapeHTML(text);
         return start + str + end;
+    }
+
+    public String format(Object obj) {
+        return format(String.valueOf(obj));
+    }
+
+    @NotNull
+    @Override
+    public HtmlFormatter clone() {
+        try {
+            HtmlFormatter clone = (HtmlFormatter) super.clone();
+            clone.tags = new HashSet<>(tags);
+            clone.cssStyles = new HashMap<>(cssStyles);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }
