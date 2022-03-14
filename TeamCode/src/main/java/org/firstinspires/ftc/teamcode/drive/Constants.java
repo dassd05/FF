@@ -5,37 +5,43 @@ import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import org.opencv.core.Point;
 
-import java.util.*;
-
 @Config
 public class Constants {
 
     //TODO: servo positions
-    public static double BOX_ROTATION_DOWN = 0.17;
-    public static double BOX_ROTATION_UP = 0.56;
-    public static double BOX_ROTATION_DEPLOY = 0.95;
+    public static double BOX_ROTATION_DOWN = 0.22;
+    public static double BOX_ROTATION_UP = 0.64;
+    public static double BOX_ROTATION_DEPLOY = 0.97;
 
-    public static double ROTATE_TIME = 500;
+    public static double CAP_LOW = 0.95;
+    public static double CAP_HIGH = .27;
+
+    public static double ROTATE_TIME = 450;
 
     //TODO: min and max positions to avoid going too far
     public static int SLIDES_MAX = 1500;
     public static int SLIDES_MIN = 0;
-    public static int SLIDES_TOP = 1000;
-    public static int SLIDES_MID = 530;
-    public static int SLIDES_LOW = 137;
 
-    public static double LINKAGE_1_MIN = 0.0;
-    public static double LINKAGE_1_MAX = 1.0;
-    public static double LINKAGE_2_MIN = 0.0;
-    public static double LINKAGE_2_MAX = 0.0;
+    public static double LINKAGE1_MAX_OUT = 0.05;
+    public static double LINKAGE1_MAX_IN = .75;
+    public static double LINKAGE2_MAX_OUT = 0.65;
+    public static double LINKAGE2_MAX_IN = .0;
+
+    //TODO: adjust to driver preference
+    public static long FAST_COOL_DOWN = 25;
+    public static long NORMAL_COOL_DOWN = 100;
+
+    public static int TOP = 1000;
+    public static int MID = 530;
+    public static int LOW = 137;
 
     //tune
     public static double LINKAGE_SAFE_DROP = 0.2;
     public static double LINKAGE_SAFE_EXTEND = 120;
 
     //TODO: fix these adjustments as necessary
-    public static double LINKAGE_ADJUSTMENT = .0025;
-    public static int SLIDES_ADJUSTMENT = 2;
+    public static double LINKAGE_ADJUSTMENT = .023;
+    public static int SLIDES_ADJUSTMENT = 5;
 
     public static double INTAKE_POWER = 0.9;
 
@@ -54,11 +60,9 @@ public class Constants {
     //TODO: tune odo constants
 
     //box detecting constants
-    public static double THRESHOLD = 0.0;
-
-    public static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(500, 500);
-    public static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(750, 500);
-    public static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(1000, 500);
+    public static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(0, 330);
+    public static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(430, 330);
+    public static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(860, 330);
 
 
     public static final int REGION_WIDTH = 100;

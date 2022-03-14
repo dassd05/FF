@@ -1,0 +1,319 @@
+package org.firstinspires.ftc.teamcode.drive.auton;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import org.firstinspires.ftc.teamcode.drive.Constants;
+import org.firstinspires.ftc.teamcode.drive.Robot;
+
+@Autonomous(group = "1", name = "\uD83D\uDD35 Warehouse", preselectTeleOp = "Teleop")
+public class BlueWarehouse extends BaseAuton {
+
+    Robot robot;
+
+    boolean firstTime = true;
+    boolean runFSM = false;
+
+    boolean isDeployed = false;
+
+    double distance1 = 800;
+    double angle1 = 58;
+    double distance2 = 625;
+    double angle2 = 90;
+    double distance3 = 1900;
+
+    @Override
+    public void setRobotPosition() {
+//        robot.setPosition(0, 0, 0); //ofc might want to change
+    }
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        super.runOpMode();
+
+        robot.capper.setPosition(Constants.CAP_HIGH);
+
+        LeftRedState = LeftRed.FORWARD;
+        MiddleRedState = MiddleRed.FORWARD;
+        RightRedState = RightRed.FORWARD;
+
+
+        while (opModeIsActive()) {
+            robot.clearCache();
+
+            switch (boxPosition) {
+                case LEFT:
+                    switch (LeftRedState) {
+                        case FORWARD:
+                            robot.gyroStraight(-.5, 0);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance1)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                autonWaitTimer.reset();
+                                LeftRedState = LeftRed.TURN;
+                            }
+                            break;
+                        case TURN:
+                            robot.setTankPowers(-(robot.getAngle() - angle1) * .0095, (robot.getAngle() - angle1) * .0095);
+
+                            if (Math.abs(robot.getAngle()) >= Math.abs(angle1) || autonWaitTimer.time() >= 3500) {
+                                robot.setTankPowers(0, 0);
+                                autonWaitTimer.reset();
+                                runFSM = true;
+                                LeftRedState = LeftRed.EXTEND;
+                            }
+                            break;
+                        case EXTEND:
+                            if (autonWaitTimer.time() >= 250 && runFSM) {
+                                robot.deployShared();
+                                robot.linkageAdjust(-.3);
+                                runFSM = false;
+                                isDeployed = true;
+                            }
+                            if (autonWaitTimer.time() >= 1250) {
+                                robot.linkageAdjust(.42);
+                                autonWaitTimer.reset();
+                                runFSM = true;
+                                firstTime = true;
+                                LeftRedState = LeftRed.DROP;
+                            }
+                            break;
+                        case DROP:
+                            if (autonWaitTimer.time() >= 1000 && runFSM) {
+                                robot.boxDrop();
+                                if (autonWaitTimer.time() >= 1750 && firstTime) {
+                                    robot.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (autonWaitTimer.time() >= 2650) {
+                                    robot.deployRest();
+                                    runFSM = false;
+                                    autonWaitTimer.reset();
+                                    robot.resetWheels();
+                                    LeftRedState = LeftRed.FORWARD2;
+                                }
+                            }
+                            break;
+                        case FORWARD2:
+                            robot.gyroStraight(.85, 0);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance2)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                autonWaitTimer.reset();
+                                LeftRedState = LeftRed.TURN2;
+                            }
+                            break;
+                        case TURN2:
+                            robot.setTankPowers(-(robot.getAngle() - angle2) * .0095, (robot.getAngle() - angle2) * .0095);
+                            if (Math.abs(robot.getAngle()) >= Math.abs(angle2) || autonWaitTimer.time() >= 3500) {
+                                robot.setTankPowers(0, 0);
+                                robot.resetWheels();
+                                LeftRedState = LeftRed.PARK;
+                            }
+                            break;
+                        case PARK:
+                            robot.gyroStraight(.85, 90);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance3)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                LeftRedState = LeftRed.FINISH;
+                            }
+                            break;
+                        case FINISH:
+                            break;
+                    }
+                    break;
+
+                case RIGHT:
+                    switch (RightRedState) {
+                        case FORWARD:
+                            robot.gyroStraight(-.5, 0);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance1)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                autonWaitTimer.reset();
+                                RightRedState = RightRed.TURN;
+                            }
+                            break;
+                        case TURN:
+                            robot.setTankPowers(-(robot.getAngle() - angle1) * .0095, (robot.getAngle() - angle1) * .0095);
+
+                            if (Math.abs(robot.getAngle()) >= Math.abs(angle1) || autonWaitTimer.time() >= 3500) {
+                                robot.setTankPowers(0, 0);
+                                autonWaitTimer.reset();
+                                runFSM = true;
+                                RightRedState = RightRed.EXTEND;
+                            }
+                            break;
+                        case EXTEND:
+                            if (autonWaitTimer.time() >= 250 && runFSM) {
+                                robot.deployTop();
+                                robot.linkageAdjust(-.3);
+                                runFSM = false;
+                                isDeployed = true;
+                            }
+                            if (autonWaitTimer.time() >= 1250) {
+                                robot.linkageAdjust(.34);
+                                autonWaitTimer.reset();
+                                runFSM = true;
+                                firstTime = true;
+                                RightRedState = RightRed.DROP;
+                            }
+                            break;
+                        case DROP:
+                            if (autonWaitTimer.time() >= 1000 && runFSM) {
+                                robot.boxDrop();
+                                if (autonWaitTimer.time() >= 1750 && firstTime) {
+                                    robot.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (autonWaitTimer.time() >= 2650) {
+                                    robot.deployRest();
+                                    runFSM = false;
+                                    autonWaitTimer.reset();
+                                    robot.resetWheels();
+                                    RightRedState = RightRed.FORWARD2;
+                                }
+                            }
+                            break;
+                        case FORWARD2:
+                            robot.gyroStraight(.5, 0);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance2)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                autonWaitTimer.reset();
+                                RightRedState = RightRed.TURN2;
+                            }
+                            break;
+                        case TURN2:
+                            robot.setTankPowers(-(robot.getAngle() - angle2) * .0095, (robot.getAngle() - angle2) * .0095);
+                            if (Math.abs(robot.getAngle()) >= Math.abs(angle2) || autonWaitTimer.time() >= 3500) {
+                                robot.setTankPowers(0, 0);
+                                robot.resetWheels();
+                                RightRedState = RightRed.PARK;
+                            }
+                            break;
+                        case PARK:
+                            robot.gyroStraight(.85, 90);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance3)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                RightRedState = RightRed.FINISH;
+                            }
+                            break;
+                        case FINISH:
+                            break;
+                    }
+                    break;
+
+                case MIDDLE:
+                    switch (MiddleRedState) {
+                        case FORWARD:
+                            robot.gyroStraight(-.5, 0);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance1) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance1)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                autonWaitTimer.reset();
+                                MiddleRedState = MiddleRed.TURN;
+                            }
+                            break;
+                        case TURN:
+                            robot.setTankPowers(-(robot.getAngle() - angle1) * .0095, (robot.getAngle() - angle1) * .0095);
+
+                            if (Math.abs(robot.getAngle()) >= Math.abs(angle1) || autonWaitTimer.time() >= 3500) {
+                                robot.setTankPowers(0, 0);
+                                autonWaitTimer.reset();
+                                runFSM = true;
+                                MiddleRedState = MiddleRed.EXTEND;
+                            }
+                            break;
+                        case EXTEND:
+                            if (autonWaitTimer.time() >= 250 && runFSM) {
+                                robot.deployMiddle();
+                                robot.slidesAdjust(-10);
+                                robot.linkageAdjust(-.3);
+                                runFSM = false;
+                                isDeployed = true;
+                            }
+                            if (autonWaitTimer.time() >= 1250) {
+                                robot.linkageAdjust(.38);
+                                autonWaitTimer.reset();
+                                runFSM = true;
+                                firstTime = true;
+                                MiddleRedState = MiddleRed.DROP;
+                            }
+                            break;
+                        case DROP:
+                            if (autonWaitTimer.time() >= 1000 && runFSM) {
+                                robot.boxDrop();
+                                if (autonWaitTimer.time() >= 1750 && firstTime) {
+                                    robot.linkageAdjust(-.4);
+                                    firstTime = false;
+                                }
+                                if (autonWaitTimer.time() >= 2650) {
+                                    robot.deployRest();
+                                    runFSM = false;
+                                    autonWaitTimer.reset();
+                                    robot.resetWheels();
+                                    MiddleRedState = MiddleRed.FORWARD2;
+                                }
+                            }
+                            break;
+                        case FORWARD2:
+                            robot.gyroStraight(.5, 0);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance2) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance2)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                autonWaitTimer.reset();
+                                MiddleRedState = MiddleRed.TURN2;
+                            }
+                            break;
+                        case TURN2:
+                            robot.setTankPowers(-(robot.getAngle() - angle2) * .0095, (robot.getAngle() - angle2) * .0095);
+                            if (Math.abs(robot.getAngle()) >= Math.abs(angle2) || autonWaitTimer.time() >= 3500) {
+                                robot.setTankPowers(0, 0);
+                                robot.resetWheels();
+                                MiddleRedState = MiddleRed.PARK;
+                            }
+                            break;
+                        case PARK:
+                            robot.gyroStraight(.85, 90);
+                            if (Math.abs(robot.backLeftPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.frontLeftPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.backRightPosition()) >= Math.abs(distance3) ||
+                                    Math.abs(robot.frontRightPosition()) >= Math.abs(distance3)) {
+                                robot.setTankPowers(0.0, 0.0);
+                                MiddleRedState = MiddleRed.FINISH;
+                            }
+                            break;
+                        case FINISH:
+                            break;
+                    }
+                    break;
+            }
+
+            robot.updateAll();
+//
+//            telemetry.addData("x", robot.getX());
+//            telemetry.addData("y", robot.getY());
+//            telemetry.addData("heading", robot.getTheta());
+            telemetry.addData("angle", robot.getAngle());
+            telemetry.update();
+        }
+    }
+
+}

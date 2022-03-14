@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.testing;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
 import java.util.List;

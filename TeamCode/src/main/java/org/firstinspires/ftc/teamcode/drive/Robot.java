@@ -62,7 +62,9 @@ public class Robot {
     public DcMotor intake;
     public DcMotorEx slides1, slides2;
     public Servo boxServo, linkage1, linkage2;
-    public CRServoImplEx carousel1, carousel2;
+    public CRServo carousel1, carousel2;
+    public DcMotor carousel;
+    public Servo capper;
     public VoltageSensor voltageSensor;
     public BNO055IMU imu;
     public Encoder leftEncoder, rightEncoder;
@@ -72,7 +74,7 @@ public class Robot {
     protected IntakeState intakeState;
     protected DeployState deployState;
     protected BoxState boxState;
-    @Deprecated protected DropState dropState;
+    protected DropState dropState;
 
     public ElapsedTime slidesTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -162,6 +164,22 @@ public class Robot {
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE); //this too
 
+        carousel = hardwareMap.get(DcMotor.class, "port3");
+
+        // should be equivalent
+        // but why does it not reset all the drivetrain motors???
+        // very confusing
+        resetWheels();
+//        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        carousel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//
+//        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        carousel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
 //        rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
 //        leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
 //
@@ -170,10 +188,11 @@ public class Robot {
 //        rightEncoder.setDirection(Encoder.Direction.REVERSE);
 
         boxServo = hardwareMap.get(Servo.class, "boxServo");
-        carousel1 = hardwareMap.get(CRServoImplEx.class, "carousel1");
-        carousel2 = hardwareMap.get(CRServoImplEx.class, "carousel2");
+//        carousel1 = hardwareMap.get(CRServoImplEx.class, "carousel1");
+        carousel2 = hardwareMap.get(CRServo.class, "carousel2");
         linkage1 = hardwareMap.get(Servo.class, "linkage1");
         linkage2 = hardwareMap.get(Servo.class, "linkage2");
+        capper = hardwareMap.get(Servo.class, "capper");
 
         //noinspection DuplicatedCode
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -205,7 +224,7 @@ public class Robot {
 
         intakeState = IntakeState.OFF;
         deployState = DeployState.REST;
-        boxState = BoxState.DOWN;
+        boxState = BoxState.COLLECT;
         dropState = DropState.DROP;
 
         telemetry.update();
@@ -304,9 +323,10 @@ public class Robot {
      */
     public void deployRest() {
         if (deployState != DeployState.REST) {
-            deployState = DeployState.GO_TO_REST;
+            deployState = DeployState.REST;
             dropState = DropState.DROP;
             deployTimer.reset();
+            firstTime = true;
             linkageTuckedInTime = linkage2.getPosition() * 2000 - slidesPosition * .35;
         }
     }
@@ -322,6 +342,7 @@ public class Robot {
         if (deployState != DeployState.MIDDLE) {
             deployState = DeployState.MIDDLE;
             deployTimer.reset();
+            firstTime = true;
             boxUp();
         }
     }
@@ -337,6 +358,7 @@ public class Robot {
         if (deployState != DeployState.TOP) {
             deployState = DeployState.TOP;
             deployTimer.reset();
+            firstTime = true;
             boxUp();
         }
     }
@@ -352,6 +374,7 @@ public class Robot {
         if (deployState != DeployState.SHARED) {
             deployState = DeployState.SHARED;
             deployTimer.reset();
+            firstTime = true;
             boxUp();
         }
     }
@@ -390,7 +413,7 @@ public class Robot {
      * Rotate the box into the drop-off state.
      *
      * @see #boxUp()
-     * @see #boxDown()
+     * @see #boxCollect()
      */
     public void boxDrop() {
         boxState = BoxState.DROP;
@@ -400,7 +423,7 @@ public class Robot {
      * Rotate the box into an upwards state.
      *
      * @see #boxDrop()
-     * @see #boxDown()
+     * @see #boxCollect()
      */
     public void boxUp() {
         boxState = BoxState.UP;
@@ -412,9 +435,11 @@ public class Robot {
      * @see #boxDrop()
      * @see #boxUp()
      */
-    public void boxDown() {
-        boxState = BoxState.DOWN;
+    public void boxCollect() {
+        boxState = BoxState.COLLECT;
     }
+
+    boolean firstTime = false;
 
     /**
      * Update the deployment FSM.
@@ -425,49 +450,74 @@ public class Robot {
      */
     public void updateDeployState() {
         switch (deployState) {
-            case GO_TO_REST:
-                slidesPosition += slidesAdjustment;
-                resetSlidesAdjustment();
-                resetLinkageAdjustment();
-                linkagePosition = 0;
-                boxDown();
-                if (deployTimer.time() > linkageTuckedInTime && deployTimer.time() > ROTATE_TIME) {
-                    slidesPosition *= .7;
-                    slidesPower = (double) slidesPosition / SLIDES_MAX + .2;
-                }
-                if (slidesPosition < 10) {
-                    deployState = DeployState.REST;
-                }
-                break;
             case REST:
+                if (firstTime) {
+                    resetSlidesAdjustment();
+                    resetLinkageAdjustment();
+                    boxCollect();
+                    firstTime = false;
+                }
+
+                linkagePosition = 0;
+
+                switch (dropState) {
+                    case DROP:
+                        if (deployTimer.time() > ROTATE_TIME) {
+                            if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
+                                if (slides1.getCurrentPosition() > 25 && deployTimer.time() < 4000 /*to make sure it moves on*/) {
+                                    slidesPosition = 25;
+                                    slidesPower = .85;
+                                } else {
+                                    safeDropTimer.reset();
+                                    dropState = DropState.FINAL;
+                                }
+                            }
+                        }
+                        break;
+
+                    case FINAL:
+                        if (safeDropTimer.time() > 200) {
+                            slidesPosition = 0;
+                            slidesPower = .3;
+                        }
+                        break;
+                }
+
                 break;
 
+            // we do the same thing for middle and shared
             case MIDDLE:
+
+            case SHARED:
+                if (firstTime) {
+                    boxUp();
+                    firstTime = false;
+                }
+
                 if (deployTimer.time() > ROTATE_TIME) {
-                    slidesPosition = SLIDES_MID;
+                    slidesPosition = Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
                     slidesPower = .8;
+
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         linkagePosition = .4;
                 }
                 break;
 
             case TOP:
+                if (firstTime) {
+                    boxUp();
+                    firstTime = false;
+                }
+
                 if (deployTimer.time() > ROTATE_TIME) {
-                    slidesPosition = SLIDES_TOP;
+                    slidesPosition = Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
                     slidesPower = .85;
+
                     if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
                         linkagePosition = .4;
                 }
                 break;
 
-            case SHARED:
-                if (deployTimer.time() > ROTATE_TIME) {
-                    slidesPosition = SLIDES_LOW;
-                    slidesPower = .8;
-                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        linkagePosition = .4;
-                }
-                break;
         }
     }
 
@@ -509,7 +559,7 @@ public class Robot {
             case UP:
                 boxServo.setPosition(BOX_ROTATION_UP);
                 break;
-            case DOWN:
+            case COLLECT:
                 boxServo.setPosition(BOX_ROTATION_DOWN);
                 break;
         }
@@ -569,8 +619,9 @@ public class Robot {
      * @param targetPosition the desired position for the linkage servos [0, 1]
      */
     public void moveLinkage(double targetPosition) {
-        linkage2.setPosition(targetPosition);
-        linkage1.setPosition(1-targetPosition);
+        // target position is from 0 to 1 max in to out
+        linkage1.setPosition(Range.scale(targetPosition, 0, 1, LINKAGE1_MAX_IN, LINKAGE1_MAX_OUT));
+        linkage2.setPosition(Range.scale(targetPosition, 0, 1, LINKAGE2_MAX_IN, LINKAGE2_MAX_OUT));
     }
 
     /**
@@ -707,6 +758,23 @@ public class Robot {
         backRight.setPower((forward - turn) * multiplier);
     }
 
+    public void gyroStraight(double power, double heading) {
+        double error = (heading - getAngle()) * .025;
+        setTankPowers(power + error, power - error);
+    }
+
+    public void resetWheels() {
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        carousel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        carousel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
     public void PIDDrive(double target, double left, double right, boolean runPID, long update) {
         if (runPID) {
             //probably maybe switch to getOdoAngle() cause no I2C lag plus this imu seems to drift
@@ -763,6 +831,19 @@ public class Robot {
 
     public double getRightWheelPos() {
         return encoderTicksToInches(rightEncoder.getCurrentPosition()) * RIGHT_WHEEL_MULTIPLIER;
+    }
+
+    public double backLeftPosition() {
+        return backLeft.getCurrentPosition();
+    }
+    public double frontLeftPosition() {
+        return frontLeft.getCurrentPosition();
+    }
+    public double backRightPosition() {
+        return intake.getCurrentPosition();
+    }
+    public double frontRightPosition() {
+        return -carousel.getCurrentPosition();
     }
 
     //new update method that utilizes velocity instead of positions
@@ -846,7 +927,6 @@ public class Robot {
 
     public enum DeployState {
         REST,
-        GO_TO_REST,
         MIDDLE,
         TOP,
         SHARED,
@@ -864,7 +944,7 @@ public class Robot {
     }
 
     public enum BoxState {
-        DOWN,
+        COLLECT,
         UP,
         DROP
     }

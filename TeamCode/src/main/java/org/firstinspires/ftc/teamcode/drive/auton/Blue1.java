@@ -49,21 +49,4 @@ public class Blue1 extends BaseAuton {
         }
     }
 
-//    public void updateBoxPosition() {
-//        if (pipeline.position == null) {
-//            telemetry.addData("still working on it", "gimme a sec");
-//        } else if (pipeline.position == BoxPositionDetection.BoxPosition.RIGHT){
-//            telemetry.addData("Right Position", "Waiting for start");
-//            WhatPosition = ThisPosition.RIGHT_POSITION;
-//            telemetry.update();
-//        } else if (pipeline.position == BoxPositionDetection.BoxPosition.MIDDLE){
-//            telemetry.addData("Middle Position", "Waiting for start");
-//            WhatPosition = ThisPosition.MIDDLE_POSITION;
-//        } else if (pipeline.position == BoxPositionDetection.BoxPosition.LEFT){
-//            telemetry.addData("Left Position", "Waiting for start");
-//            WhatPosition = ThisPosition.LEFT_POSITION;
-//        }
-//        telemetry.update();
-//        sleep(75); //so we don't burn cpu cycles
-//    }
 }

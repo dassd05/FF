@@ -24,6 +24,10 @@ public abstract class BaseAuton extends LinearOpMode {
 
     public ElapsedTime autonWaitTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
+    public static LeftRed LeftRedState;
+    public static MiddleRed MiddleRedState;
+    public static RightRed RightRedState;
+
     @Override @CallSuper
     public void runOpMode() throws InterruptedException {
         robot = new Robot(hardwareMap, telemetry);
@@ -33,6 +37,9 @@ public abstract class BaseAuton extends LinearOpMode {
         robot.webcamInit(pipeline);
 
         setRobotPosition();
+
+        robot.boxUp();
+        robot.updateAll();
 
         sleep(150); // just to make sure webcam is properly initialized before updateBoxPosition()
 
@@ -49,16 +56,6 @@ public abstract class BaseAuton extends LinearOpMode {
         //todo clean this up
         if (pipeline.position == null) {
             telemetry.addData("still working on it", "gimme a sec");
-//        } else if (pipeline.position == BoxPosition.RIGHT){
-//            telemetry.addData("Right Position", "Waiting for start");
-//            boxPosition = BoxPosition.RIGHT;
-//            telemetry.update();
-//        } else if (pipeline.position == BoxPosition.MIDDLE){
-//            telemetry.addData("Middle Position", "Waiting for start");
-//            boxPosition = BoxPosition.MIDDLE;
-//        } else if (pipeline.position == BoxPosition.LEFT){
-//            telemetry.addData("Left Position", "Waiting for start");
-//            boxPosition = BoxPosition.LEFT;
         } else {
             boxPosition = pipeline.position;
             telemetry.addData(boxPosition.name() + " position", "Waiting for start");
@@ -73,4 +70,46 @@ public abstract class BaseAuton extends LinearOpMode {
      * @see Robot#setPosition(double, double, double) 
      */
     public abstract void setRobotPosition();
+
+
+
+    public enum LeftRed {
+        FORWARD,
+        TURN,
+        EXTEND,
+        DROP,
+        FORWARD2,
+        TURN2,
+        PARK,
+        FINISH,
+        CAROUSEL,
+        ACTUAL_FINISH
+    }
+
+    public enum MiddleRed {
+        FORWARD,
+        TURN,
+        EXTEND,
+        DROP,
+        FORWARD2,
+        TURN2,
+        PARK,
+        FINISH,
+        CAROUSEL,
+        ACTUAL_FINISH
+    }
+
+    public enum RightRed {
+        FORWARD,
+        TURN,
+        EXTEND,
+        DROP,
+        FORWARD2,
+        TURN2,
+        PARK,
+        FINISH,
+        CAROUSEL,
+        ACTUAL_FINISH
+    }
+
 }
