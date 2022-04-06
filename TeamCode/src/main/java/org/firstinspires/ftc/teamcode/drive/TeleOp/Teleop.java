@@ -3,12 +3,11 @@ package org.firstinspires.ftc.teamcode.drive.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.drive.Robot;
 import org.firstinspires.ftc.teamcode.drive.GamepadSystems.GamepadListenerEx;
+import org.firstinspires.ftc.teamcode.util.HtmlFormatter;
 
 import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
@@ -32,6 +31,8 @@ public class Teleop extends LinearOpMode {
     boolean capUp = true;
 
     public CRServo carouselServo;
+
+    public ElapsedTime rumbleCooldown = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -162,15 +163,32 @@ public class Teleop extends LinearOpMode {
                     adjustStuff();
             }
 
+
+            // gamepad rumble
+            if (rumbleCooldown.time() > 100) {
+                rumbleCooldown.reset();
+                gamepad1.rumble(forward, turn, 100); // rumbles when robot is moving
+                gamepad2.rumble(r.power, power, 100); // rumbles when slides or carousel moves
+            }
+
             r.updateAll();
 
-            telemetry.addData("linkage position", r.position + r.linkageAdjustment);
-            telemetry.addData("desired slides position", r.desiredSlidesPosition);
-            telemetry.addData("slides 1 position", r.getSlides1CurrentPosition());
-            telemetry.addData("slides 2 position", r.getSlides2CurrentPosition());
-            telemetry.addData("power", r.power);
-            telemetry.addData("state", r.deploymentState);
-            telemetry.addData("power", power);
+            HtmlFormatter caption = new HtmlFormatter().bold().italic();
+            HtmlFormatter description = new HtmlFormatter();
+            telemetry.addData(caption.textColor("#f57322").format("linkage position"),
+                    description.textColor("#f57322").format(r.position + r.linkageAdjustment));
+            telemetry.addData(caption.textColor("#f58f22").format("desired slides position"),
+                    description.textColor("#f58f22").format(r.desiredSlidesPosition));
+            telemetry.addData(caption.textColor("#f5d222").format("slides 1 position"),
+                    description.textColor("#f5d222").format(r.getSlides1CurrentPosition()));
+            telemetry.addData(caption.textColor("#f5e322").format("slides 2 position"),
+                    description.textColor("#f5e322").format(r.getSlides2CurrentPosition()));
+            telemetry.addData(caption.textColor("#22f1f5").format("power"),
+                    description.textColor("#22f1f5").format(r.power));
+            telemetry.addData(caption.textColor("purple").format("state"),
+                    description.textColor("purple").format(r.deploymentState));
+            telemetry.addData(caption.textColor("blue").format("power"),
+                    description.textColor("blue").format(power));
 
             telemetry.update();
             gamepadListener1.update();

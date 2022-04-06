@@ -18,7 +18,7 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Constants.CAP_HIGH;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "1", name = "Blue Carousel", preselectTeleOp = "Teleop")
+@Autonomous(group = "1", name = "\uD83D\uDD35 Carousel", preselectTeleOp = "Teleop")
 public class BlueCarousel extends LinearOpMode {
 
     Robot r = new Robot();
