@@ -167,7 +167,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.carousel2.setPower(1);
+                            r.carousel2.setPower(-1);
                             if (r.autonWaitTimer.time() > 6500) {
                                 r.resetWheels();
                                 r.autonWaitTimer.reset();
@@ -282,7 +282,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.carousel2.setPower(1);
+                            r.carousel2.setPower(-1);
                             if (r.autonWaitTimer.time() > 6500) {
                                 r.resetWheels();
                                 r.autonWaitTimer.reset();
@@ -398,7 +398,7 @@ public class RedCarousel extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.carousel2.setPower(1);
+                            r.carousel2.setPower(-1);
                             if (r.autonWaitTimer.time() > 6500) {
                                 r.resetWheels();
                                 r.autonWaitTimer.reset();

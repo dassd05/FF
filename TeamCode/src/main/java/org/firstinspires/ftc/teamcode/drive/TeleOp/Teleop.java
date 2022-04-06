@@ -47,6 +47,10 @@ public class Teleop extends LinearOpMode {
                 super.onButtonPress(button);
                 if (button == Button.left_bumper && r.deploymentState != deployState.REST)
                     r.dropoffBox();
+                if (button == Button.a && r.deploymentState == deployState.CAP_HOVER)
+                    r.cap();
+                if (button == Button.a && r.deploymentState == deployState.REST)
+                    r.hover();
             }
         };
         //toggles intake on/off with right bumper
@@ -113,9 +117,9 @@ public class Teleop extends LinearOpMode {
                 if (lastCarouselOn)
                     cycles += 1;
                 if (gamepad2.right_trigger > 0.5)
-                    power = .4 * (Math.pow((1+.0135), cycles));
+                    power = .4 * (Math.pow((1+.015), cycles));
                 else
-                    power = -.4 * (Math.pow((1+.0135), cycles));
+                    power = -.4 * (Math.pow((1+.015), cycles));
 
             } else {
                 power = 0.0;
@@ -175,6 +179,17 @@ public class Teleop extends LinearOpMode {
     }
 
     public void adjustStuff() {
+        if (gamepad1.left_trigger < .2) {
+            if (gamepad1.dpad_up)
+                r.slidesAdjust(SLIDES_ADJUSTMENT);
+            if (gamepad1.dpad_down)
+                r.slidesAdjust(-SLIDES_ADJUSTMENT);
+        } else {
+            if (gamepad1.dpad_up)
+                r.boxAdjust(-LINKAGE_ADJUSTMENT/3.0);
+            if (gamepad1.dpad_down)
+                r.boxAdjust(LINKAGE_ADJUSTMENT/3.0);
+        }
         if (gamepad1.dpad_right) {
             if (r.deploymentState == deployState.SHARED)
                 r.linkageAdjust(LINKAGE_ADJUSTMENT/1.6);
@@ -187,16 +202,12 @@ public class Teleop extends LinearOpMode {
             else
                 r.linkageAdjust(-LINKAGE_ADJUSTMENT);
         }
-        if (gamepad1.dpad_up)
-            r.slidesAdjust(SLIDES_ADJUSTMENT);
-        if (gamepad1.dpad_down)
-            r.slidesAdjust(-SLIDES_ADJUSTMENT);
 
         if (Math.abs(gamepad2.left_stick_y) > .1) {
             if (gamepad2.right_trigger > .5)
                 Some_adjustment += gamepad2.left_stick_y/20.0;
             else
-                Some_adjustment += gamepad2.left_stick_y/65.0;
+                Some_adjustment += gamepad2.left_stick_y/80.0;
         }
 
         buttonCoolDown.reset();

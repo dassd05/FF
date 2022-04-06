@@ -203,6 +203,8 @@ public class Robot {
         MIDDLE,
         TOP,
         SHARED,
+        CAP_HOVER,
+        CAP_UP
     }
 
     public deployState deploymentState;
@@ -305,6 +307,31 @@ public class Robot {
                 }
                 break;
 
+            case CAP_HOVER:
+                if (firstTime) {
+                    resetBoxAdjustment();
+                    firstTime = false;
+                }
+
+                desiredSlidesPosition = (int) Range.clip(HOVER + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .8;
+
+                if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND) {
+                    position = .2;
+                    hoverBox();
+                }
+                break;
+
+            case CAP_UP:
+                desiredSlidesPosition = (int) Range.clip(CAP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .4;
+
+                if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND) {
+                    position = .2;
+                    capBox();
+                }
+                break;
+
             default:
         }
     }
@@ -333,6 +360,17 @@ public class Robot {
         deploymentState = deployState.SHARED;
         deployTimer.reset();
         firstTime = true;
+    }
+
+    public void hover() {
+        deploymentState = deployState.CAP_HOVER;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    public void cap() {
+        deploymentState = deployState.CAP_UP;
+        deployTimer.reset();
     }
 
     public void moveSlides(int targetPosition, double power) {
@@ -388,7 +426,9 @@ public class Robot {
     public enum BoxState {
         COLLECT,
         UP,
-        DROP
+        DROP,
+        HOVER,
+        FINAL_CAP
     }
 
     public BoxState boxState;
@@ -407,8 +447,25 @@ public class Robot {
             case COLLECT:
                 boxServo.setPosition(BOX_ROTATION_DOWN);
                 break;
+            case HOVER:
+                boxServo.setPosition(BOX_ROTATION_HOVER + boxAdjustment);
+                break;
+            case FINAL_CAP:
+                boxServo.setPosition(BOX_ROTATION_CAP + boxAdjustment);
+                break;
         }
     }
+
+    public double boxAdjustment = 0.0;
+
+    public void boxAdjust(double adjust) {
+        boxAdjustment += adjust;
+    }
+
+    public void resetBoxAdjustment() {
+        boxAdjustment = 0.0;
+    }
+
 
     public void dropoffBox() {
         boxState = BoxState.DROP;
@@ -420,6 +477,13 @@ public class Robot {
 
     public void collectBox() {
         boxState = BoxState.COLLECT;
+    }
+
+    public void hoverBox() {
+        boxState = BoxState.HOVER;
+    }
+    public void capBox() {
+        boxState = BoxState.FINAL_CAP;
     }
 
 //    public enum TeamShippingElementState {
