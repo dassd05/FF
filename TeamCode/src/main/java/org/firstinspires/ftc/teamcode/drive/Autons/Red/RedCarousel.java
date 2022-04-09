@@ -40,12 +40,12 @@ public class RedCarousel extends LinearOpMode {
     boolean isDeployed = false;
 
     double distance1 = 800;
-    double angle1 = 60;
+    double angle1 = 58;
     double distance2 = 1100;
-    double angle1_2 = 52;
+    double angle1_2 = 61;
     double angle2 = 0;
     double distance3 = 100;
-    double distance4 = 810;
+    double distance4 = 835;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -333,11 +333,22 @@ public class RedCarousel extends LinearOpMode {
                 case MIDDLE_POSITION:
                     switch (MiddleRedState) {
                         case FORWARD:
-                            r.gyroStraight(-.5, 0);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance1) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance1) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance1) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance1)) {
+                            r.gyroStraight(-.3, 0);
+                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance1 + 150) ||
+                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance1 + 150) ||
+                                    Math.abs(r.backRightPosition()) >= Math.abs(distance1 + 150) ||
+                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance1 + 150)) {
+                                r.setTankPowers(0.0, 0.0);
+                                r.autonWaitTimer.reset();
+                                MiddleRedState = MiddleRed.BACK;
+                            }
+                            break;
+                        case BACK:
+                            r.gyroStraight(.4, 0);
+                            if (Math.abs(r.backLeftPosition()) <= Math.abs(distance1) ||
+                                    Math.abs(r.frontLeftPosition()) <= Math.abs(distance1) ||
+                                    Math.abs(r.backRightPosition()) <= Math.abs(distance1) ||
+                                    Math.abs(r.frontRightPosition()) <= Math.abs(distance1)) {
                                 r.setTankPowers(0.0, 0.0);
                                 r.autonWaitTimer.reset();
                                 MiddleRedState = MiddleRed.TURN;
@@ -362,7 +373,7 @@ public class RedCarousel extends LinearOpMode {
                                 isDeployed = true;
                             }
                             if (r.autonWaitTimer.time() >= 1250) {
-                                r.linkageAdjust(.38);
+                                r.linkageAdjust(.58);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
                                 firstTime = true;

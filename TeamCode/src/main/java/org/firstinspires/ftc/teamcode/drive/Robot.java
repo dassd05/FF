@@ -329,7 +329,7 @@ public class Robot {
 
                 if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND) {
                     position = .2;
-                    capBox();
+                    boxServo.setPosition(CAP_HIGH);
                 }
                 break;
 
@@ -641,6 +641,7 @@ public class Robot {
 
     public enum MiddleRed {
         FORWARD,
+        BACK,
         TURN,
         EXTEND,
         DROP,
