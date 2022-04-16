@@ -1,12 +1,5 @@
 package org.firstinspires.ftc.teamcode.drive.testing;
 
-import static org.firstinspires.ftc.teamcode.drive.Constants.CAP_HIGH;
-import static org.firstinspires.ftc.teamcode.drive.Constants.CAP_LOW;
-import static org.firstinspires.ftc.teamcode.drive.Constants.FAST_COOL_DOWN;
-import static org.firstinspires.ftc.teamcode.drive.Constants.LINKAGE_ADJUSTMENT;
-import static org.firstinspires.ftc.teamcode.drive.Constants.NORMAL_COOL_DOWN;
-import static org.firstinspires.ftc.teamcode.drive.Constants.SLIDES_ADJUSTMENT;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;

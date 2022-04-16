@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -41,7 +42,8 @@ import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 
 
 public class Robot {
-    public Servo boxServo = null, linkage1 = null, linkage2 = null, capper = null;
+    public Servo boxServo = null, linkage1 = null, linkage2 = null,
+    turret = null, arm = null;
     public CRServo carousel2;
 
     public DcMotor frontLeft = null, backLeft = null, frontRight = null, backRight = null;
@@ -51,6 +53,8 @@ public class Robot {
     public DcMotorEx slides1 = null, slides2 = null;
 
     public DcMotor carousel;
+
+    public RevColorSensorV3 boxSensor = null;
 
     public VoltageSensor batteryVoltageSensor = null;
 
@@ -121,6 +125,8 @@ public class Robot {
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         carousel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        carousel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 //        rightEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
 //        leftEncoder = new Encoder(hwMap.get(DcMotorEx.class, "something"));
 //
@@ -133,7 +139,11 @@ public class Robot {
         carousel2 = hwMap.get(CRServo.class, "carousel2");
         linkage1 = hwMap.get(Servo.class, "linkage1");
         linkage2 = hwMap.get(Servo.class, "linkage2");
-        capper = hwMap.get(Servo.class, "capper");
+
+        turret = hwMap.get(Servo.class, "turret");
+        arm = hwMap.get(Servo.class, "arm");
+
+        boxSensor = hwMap.get(RevColorSensorV3.class, "boxSensor");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -169,7 +179,7 @@ public class Robot {
 
         intakeState = IntakeState.OFF;
         deploymentState = deployState.REST;
-        boxState = BoxState.COLLECT;
+        boxState = BoxState.INTAKE;
         dropState = drop.DROP;
 
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
@@ -203,9 +213,11 @@ public class Robot {
         REST,
         MIDDLE,
         TOP,
-        SHARED,
+        SHARED_LEFT,
+        SHARED_RIGHT,
         CAP_HOVER,
-        CAP_UP
+        CAP_UP,
+        BOTTOM
     }
 
     public deployState deploymentState;
@@ -220,35 +232,215 @@ public class Robot {
     public ElapsedTime safeDropTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public ElapsedTime deployTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 
+    public ElapsedTime armTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
     public int desiredSlidesPosition = 0;
     public double power = 0.0;
     public double position = 0.0;
 
+    public double turretPos = 0.0;
+    public double armPos = 0.0;
+    public double boxServoPos = 0.0;
+
+    public double boxAbsPos = BOX_HOLD;
+    public double boxRelPos;
+
     boolean firstTime = false;
+    boolean slowDown = false;
+
+    boolean absPos = true;
+
+    public boolean freightLoaded = false;
+    public boolean intakeOn = false;
+    public boolean reverse = false;
+
+//    public void updateDeployState() {
+//        switch (deploymentState) {
+//            case REST:
+//                if (firstTime) {
+//                    resetSlidesAdjustment();
+//                    resetLinkageAdjustment();
+//                    collectBox();
+//                    firstTime = false;
+//                }
+//
+//                position = 0;
+//
+//                switch (dropState) {
+//                    case DROP:
+//                        if (deployTimer.time() > ROTATE_TIME) {
+//                            if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
+//                                if (slides1.getCurrentPosition() > 25 && deployTimer.time() < 4000 /*to make sure it moves on*/) {
+//                                    desiredSlidesPosition = 25;
+//                                    power = .85;
+//                                } else {
+//                                    safeDropTimer.reset();
+//                                    dropState = drop.FINAL;
+//                                }
+//                            }
+//                        }
+//                        break;
+//
+//                    case FINAL:
+//                        if (safeDropTimer.time() > 200) {
+//                            desiredSlidesPosition = 0;
+//                            power = .3;
+//                        }
+//                        break;
+//                }
+//
+//                break;
+//
+//            case MIDDLE:
+//                if (firstTime) {
+//                    liftBox();
+//                    firstTime = false;
+//                }
+//
+//                if (deployTimer.time() > ROTATE_TIME) {
+//                    desiredSlidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+//                    power = .8;
+//
+//                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
+//                        position = .4;
+//                }
+//                break;
+//
+//            case TOP:
+//                if (firstTime) {
+//                    liftBox();
+//                    firstTime = false;
+//                }
+//
+//                if (deployTimer.time() > ROTATE_TIME) {
+//                    desiredSlidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+//                    power = .85;
+//
+//                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
+//                        position = .4;
+//                }
+//                break;
+//
+//            case SHARED:
+//                if (firstTime) {
+//                    liftBox();
+//                    firstTime = false;
+//                }
+//
+//                if (deployTimer.time() > ROTATE_TIME) {
+//                    desiredSlidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+//                    power = .8;
+//
+//                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
+//                        position = .4;
+//                }
+//                break;
+//
+//            case CAP_HOVER:
+//                if (firstTime) {
+//                    resetBoxAdjustment();
+//                    firstTime = false;
+//                }
+//
+//                desiredSlidesPosition = (int) Range.clip(HOVER + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+//                power = .8;
+//
+//                if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND) {
+//                    position = .2;
+//                    hoverBox();
+//                }
+//                break;
+//
+//            case CAP_UP:
+//                desiredSlidesPosition = (int) Range.clip(CAP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+//                power = .4;
+//
+//                if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND) {
+//                    position = .2;
+//                    capBox();
+//                }
+//                break;
+//
+//            default:
+//        }
+//    }
 
     public void updateDeployState() {
         switch (deploymentState) {
             case REST:
                 if (firstTime) {
+                    if (Math.abs(turret.getPosition() - TURRET_STRAIGHT) > .1) {
+                        slowDown = true;
+                    } else {
+                        slowDown = false;
+                    }
                     resetSlidesAdjustment();
-                    resetLinkageAdjustment();
-                    collectBox();
+                    if (!slowDown)
+                        resetLinkageAdjustment();
+                    resetTurretAdjustment();
+                    resetArmAdjustment();
+                    resetBoxAdjustment();
                     firstTime = false;
                 }
+                if (slowDown) {
+                    turretPos = TURRET_STRAIGHT;
+                    bringIn();
+                    armPos = ARM_VERTICAL;
 
-                position = 0;
+                    if (deployTimer.time() > 750) {
+                        slowDown = false;
+                    }
+                } else {
+                    resetLinkageAdjustment();
+                    turretPos = TURRET_STRAIGHT;
+                    position = 0;
+
+                    if (armPos < ARM_MAX_IN && Math.abs(ARM_MAX_IN - armPos) > armRate + .003) {
+                        armPos += armRate;
+                    } else if (armPos > ARM_MAX_IN && Math.abs(ARM_MAX_IN - armPos) > armRate + .003) {
+                        armPos -= armRate;
+                    } else {
+                        armPos = ARM_MAX_IN;
+                    }
+
+
+                    if (!freightLoaded) {
+                        if (arm.getPosition() <= ARM_SAFE_MOVE_BOX_IN) {
+                            intakeBox();
+                        } else {
+                            bringIn();
+                        }
+
+                        if (intakeOn) {
+                            if (boxState == BoxState.INTAKE) {
+                                if (reverse)
+                                    intakeReverse();
+                                else
+                                    intakeOn();
+                            }
+                        } else {
+                            intakeOff();
+                        }
+                    } else {
+                        boxUp();
+
+                        if (intakeOn) {
+                            intakeReverse();
+                        } else {
+                            intakeOff();
+                        }
+                    }
+                }
 
                 switch (dropState) {
                     case DROP:
                         if (deployTimer.time() > ROTATE_TIME) {
-                            if (linkage2.getPosition() < LINKAGE_SAFE_DROP) {
-                                if (slides1.getCurrentPosition() > 25 && deployTimer.time() < 4000 /*to make sure it moves on*/) {
-                                    desiredSlidesPosition = 25;
-                                    power = .85;
-                                } else {
-                                    safeDropTimer.reset();
-                                    dropState = drop.FINAL;
-                                }
+                            if (slides1.getCurrentPosition() > 25 && deployTimer.time() < 4000 /*to make sure it moves on*/) {
+                                desiredSlidesPosition = 25;
+                                power = .7;
+                            } else {
+                                safeDropTimer.reset();
+                                dropState = drop.FINAL;
                             }
                         }
                         break;
@@ -264,76 +456,225 @@ public class Robot {
                 break;
 
             case MIDDLE:
-                if (firstTime) {
-                    liftBox();
-                    firstTime = false;
+                if (armPos >= ARM_VERTICAL) {
+                    position = 0;
+                } else {
+                    position = LINKAGE_SAFE_AMOUNT;
                 }
 
-                if (deployTimer.time() > ROTATE_TIME) {
+                turretPos = TURRET_STRAIGHT;
+
+                if (deployTimer.time() > LINKAGE_SAFE_TIME) {
+                    if (slides1.getCurrentPosition() < (MID + slidesAdjustment) - 200) {
+                        if (armPos < ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_VERTICAL;
+                        }
+                    } else {
+                        if (armPos < ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_STRAIGHT_OUT;
+                        }
+                    }
+                }
+
+                if (position == 0) {
                     desiredSlidesPosition = (int) Range.clip(MID + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                    power = .8;
-
-                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                    power = .7;
                 }
+
+                if (boxState != BoxState.DEPLOY_ALLIANCE && boxState != BoxState.DEPLOY_SHARED ) {
+                        boxUp();
+                }
+
                 break;
 
             case TOP:
-                if (firstTime) {
-                    liftBox();
-                    firstTime = false;
+                if (armPos >= ARM_VERTICAL) {
+                    position = 0;
+                } else {
+                    position = LINKAGE_SAFE_AMOUNT;
                 }
 
-                if (deployTimer.time() > ROTATE_TIME) {
+                turretPos = TURRET_STRAIGHT;
+
+                if (deployTimer.time() > LINKAGE_SAFE_TIME) {
+                    if (slides1.getCurrentPosition() < (TOP + slidesAdjustment) - 200) {
+                        if (armPos < ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_VERTICAL;
+                        }
+                    } else {
+                        if (armPos < ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_STRAIGHT_OUT;
+                        }
+                    }
+                }
+
+                if (position == 0) {
                     desiredSlidesPosition = (int) Range.clip(TOP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                    power = .85;
+                    power = .7;
+                }
 
-                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                if (boxState != BoxState.DEPLOY_ALLIANCE && boxState != BoxState.DEPLOY_SHARED ) {
+                    boxUp();
                 }
                 break;
 
-            case SHARED:
-                if (firstTime) {
-                    liftBox();
-                    firstTime = false;
+            case BOTTOM:
+
+                if (armPos >= ARM_VERTICAL) {
+                    position = 0;
+                } else {
+                    position = LINKAGE_SAFE_AMOUNT;
                 }
 
-                if (deployTimer.time() > ROTATE_TIME) {
-                    desiredSlidesPosition = (int) Range.clip(LOW + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                    power = .8;
+                turretPos = TURRET_STRAIGHT;
 
-                    if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND)
-                        position = .4;
+                if (deployTimer.time() > LINKAGE_SAFE_TIME) {
+                    if (armPos < ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                        armPos += armRate;
+                    } else if (armPos > ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                        armPos -= armRate;
+                    } else {
+                        armPos = ARM_STRAIGHT_OUT;
+                    }
                 }
+
+                if (boxState != BoxState.DEPLOY_ALLIANCE && boxState != BoxState.DEPLOY_SHARED ) {
+                    boxUp();
+                }
+
                 break;
 
-            case CAP_HOVER:
-                if (firstTime) {
-                    resetBoxAdjustment();
-                    firstTime = false;
+            case SHARED_LEFT:
+                if (turretPos == TURRET_DEPLOY_RIGHT)
+                    position = LINKAGE_SHARED;
+                else
+                    position = LINKAGE_SAFE_AMOUNT;
+
+                if (deployTimer.time() > LINKAGE_SAFE_TIME) {
+                    if (deployTimer.time() < LINKAGE_SAFE_TIME + 750) {
+                        if (armPos < ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_VERTICAL;
+                        }
+                    } else {
+                        turretPos = TURRET_DEPLOY_RIGHT;
+
+                        if (armPos < ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_STRAIGHT_OUT;
+                        }
+                    }
+
+                    if (boxState != BoxState.DEPLOY_ALLIANCE && boxState != BoxState.DEPLOY_SHARED ) {
+                        boxUp();
+                    }
                 }
 
-                desiredSlidesPosition = (int) Range.clip(HOVER + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                power = .8;
+                desiredSlidesPosition = (int) Range.clip(slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .5;
 
-                if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND) {
-                    position = .2;
-                    hoverBox();
+                break;
+
+            case SHARED_RIGHT:
+                if (turretPos == TURRET_DEPLOY_LEFT)
+                    position = LINKAGE_SHARED;
+                else
+                    position = LINKAGE_SAFE_AMOUNT;
+
+                if (deployTimer.time() > LINKAGE_SAFE_TIME) {
+                    if (deployTimer.time() < LINKAGE_SAFE_TIME + 750) {
+                        if (armPos < ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_VERTICAL;
+                        }
+                    } else {
+                        turretPos = TURRET_DEPLOY_LEFT;
+
+                        if (armPos < ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos += armRate;
+                        } else if (armPos > ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                            armPos -= armRate;
+                        } else {
+                            armPos = ARM_STRAIGHT_OUT;
+                        }
+                    }
+
+                    if (boxState != BoxState.DEPLOY_ALLIANCE && boxState != BoxState.DEPLOY_SHARED ) {
+                        boxUp();
+                    }
                 }
+
+                desiredSlidesPosition = (int) Range.clip(slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .5;
+
                 break;
 
             case CAP_UP:
-                desiredSlidesPosition = (int) Range.clip(CAP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
-                power = .4;
-
-                if (getSlides1CurrentPosition() > LINKAGE_SAFE_EXTEND) {
-                    position = .2;
-                    boxServo.setPosition(CAP_HIGH);
+                if (firstTime) {
+                    resetSlidesAdjustment();
+                    resetArmAdjustment();
+                    firstTime = false;
                 }
+                position = LINKAGE_SAFE_AMOUNT;
+
+                desiredSlidesPosition = (int) Range.clip(CAP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
+                power = .7;
+
                 break;
 
+            case CAP_HOVER:
+                if (arm.getPosition() >= ARM_VERTICAL)
+                    position = 0;
+                else
+                    position = LINKAGE_SAFE_AMOUNT;
+
+                turretPos = TURRET_STRAIGHT;
+
+                if (deployTimer.time() > LINKAGE_SAFE_TIME) {
+                    if (armPos < ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                        armPos += armRate;
+                    } else if (armPos > ARM_STRAIGHT_OUT && Math.abs(ARM_STRAIGHT_OUT - armPos) > armRate + .003) {
+                        armPos -= armRate;
+                    } else {
+                        armPos = ARM_STRAIGHT_OUT;
+                    }
+
+                    if (boxState != BoxState.DEPLOY_ALLIANCE && boxState != BoxState.DEPLOY_SHARED ) {
+                        if (arm.getPosition() >= ARM_VERTICAL) {
+                            capBox();
+                        } else {
+                            boxUp();
+                        }
+                    }
+                }
+                break;
             default:
+                break;
         }
     }
 
@@ -343,10 +684,17 @@ public class Robot {
         dropState = drop.DROP;
         firstTime = true;
         deployTimer.reset();
+        armTimer.reset();
     }
 
     public void deployMiddle() {
         deploymentState = deployState.MIDDLE;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    public void deployBottom() {
+        deploymentState = deployState.BOTTOM;
         deployTimer.reset();
         firstTime = true;
     }
@@ -357,8 +705,14 @@ public class Robot {
         firstTime = true;
     }
 
-    public void deployShared() {
-        deploymentState = deployState.SHARED;
+    public void deploySharedLeft() {
+        deploymentState = deployState.SHARED_RIGHT;
+        deployTimer.reset();
+        firstTime = true;
+    }
+
+    public void deploySharedRight() {
+        deploymentState = deployState.SHARED_LEFT;
         deployTimer.reset();
         firstTime = true;
     }
@@ -372,6 +726,26 @@ public class Robot {
     public void cap() {
         deploymentState = deployState.CAP_UP;
         deployTimer.reset();
+    }
+
+    public double turretAdjustment = 0.0;
+
+    public void turretAdjust(double adjust) {
+            turretAdjustment += adjust;
+    }
+
+    public void resetTurretAdjustment() {
+        turretAdjustment = 0.0;
+    }
+
+    public double armAdjustment = 0.0;
+
+    public void armAdjust(double adjust) {
+        armAdjustment += adjust;
+    }
+
+    public void resetArmAdjustment() {
+        armAdjustment = 0.0;
     }
 
     public void moveSlides(int targetPosition, double power) {
@@ -425,34 +799,71 @@ public class Robot {
     }
 
     public enum BoxState {
-        COLLECT,
+        INTAKE,
+        DEPLOY_SHARED,
+        DEPLOY_ALLIANCE,
+        BRING_IN,
         UP,
-        DROP,
-        HOVER,
-        FINAL_CAP
+        UP_SHARED,
+        TAKE_OUT,
+        CAP
     }
 
     public BoxState boxState;
 
-    //public ElapsedTime boxTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    //dont need it
+    boolean capworkplease = false;
 
     public void updateBoxState() {
         switch (boxState) {
-            case DROP:
-                boxServo.setPosition(BOX_ROTATION_DEPLOY);
+            case INTAKE:
+                absPos = true;
+                if (boxAbsPos < BOX_INTAKE && Math.abs(BOX_INTAKE - boxAbsPos) > boxIntakeRate + .003) {
+                    boxAbsPos += boxIntakeRate;
+                } else if (boxAbsPos > BOX_INTAKE && Math.abs(BOX_INTAKE - boxAbsPos) > boxIntakeRate + .003) {
+                    boxAbsPos -= boxIntakeRate;
+                } else {
+                    boxAbsPos = BOX_INTAKE;
+                }
+                break;
+            case BRING_IN:
+                absPos = false;
+                boxRelPos = BOX_WITHDRAW_RELPOS;
+                break;
+            case TAKE_OUT:
+                absPos = true;
+                boxAbsPos = BOX_TAKE_OUT;
+                break;
+            case CAP:
+                absPos = true;
+                boxAbsPos = BOX_CAP;
                 break;
             case UP:
-                boxServo.setPosition(BOX_ROTATION_UP);
+                absPos = true;
+                boxAbsPos = BOX_HOLD;
                 break;
-            case COLLECT:
-                boxServo.setPosition(BOX_ROTATION_DOWN);
+            case UP_SHARED:
+                absPos = true;
+                boxAbsPos = BOX_HOLD_SHARED;
                 break;
-            case HOVER:
-                boxServo.setPosition(BOX_ROTATION_HOVER + boxAdjustment);
+            case DEPLOY_SHARED:
+                absPos = true;
+                if (boxAbsPos < BOX_DEPLOY && Math.abs(BOX_DEPLOY - boxAbsPos) > boxSharedRate + .003) {
+                    boxAbsPos += boxSharedRate;
+                } else if (boxAbsPos > BOX_DEPLOY && Math.abs(BOX_DEPLOY - boxAbsPos) > boxSharedRate + .003) {
+                    boxAbsPos -= boxSharedRate;
+                } else {
+                    boxAbsPos = BOX_DEPLOY;
+                }
                 break;
-            case FINAL_CAP:
-                boxServo.setPosition(BOX_ROTATION_CAP + boxAdjustment);
+            case DEPLOY_ALLIANCE:
+                absPos = true;
+                if (boxAbsPos < BOX_DEPLOY && Math.abs(BOX_DEPLOY - boxAbsPos) > boxAllianceRate + .003) {
+                    boxAbsPos += boxAllianceRate;
+                } else if (boxAbsPos > BOX_DEPLOY && Math.abs(BOX_DEPLOY - boxAbsPos) > boxAllianceRate + .003) {
+                    boxAbsPos -= boxAllianceRate;
+                } else {
+                    boxAbsPos = BOX_DEPLOY;
+                }
                 break;
         }
     }
@@ -467,29 +878,39 @@ public class Robot {
         boxAdjustment = 0.0;
     }
 
-
-    public void dropoffBox() {
-        boxState = BoxState.DROP;
+    public void intakeBox() {
+        boxState = BoxState.INTAKE;
     }
 
-    public void liftBox() {
+    public void bringIn() {
+        boxState = BoxState.BRING_IN;
+    }
+
+    public void takeOut() {
+        boxState = BoxState.TAKE_OUT;
+    }
+
+    public void boxUp() {
         boxState = BoxState.UP;
     }
 
-    public void collectBox() {
-        boxState = BoxState.COLLECT;
+    public void upShared() {
+        boxState = BoxState.UP_SHARED;
     }
 
-    public void hoverBox() {
-        boxState = BoxState.HOVER;
+    public void deployAlliance() {
+        boxState = BoxState.DEPLOY_ALLIANCE;
     }
+
+    public void deployShared() {
+        boxState = BoxState.DEPLOY_SHARED;
+    }
+
     public void capBox() {
-        boxState = BoxState.FINAL_CAP;
+        boxState = BoxState.CAP;
     }
 
-//    public enum TeamShippingElementState {
-//
-//    }
+
 
     public void updateAllStates() {
         updateDeployState();
@@ -501,6 +922,15 @@ public class Robot {
         updateAllStates();
         moveSlides(desiredSlidesPosition, power);
         moveLinkage(Range.clip(position + linkageAdjustment, 0, 1));
+
+        if (absPos)
+            boxServoPos = boxAbsPos - 4 * (armPos + armAdjustment) / 14;
+        else
+            boxServoPos = boxRelPos - 8 * (armPos + armAdjustment) / 14;
+
+        turret.setPosition(turretPos + turretAdjustment);
+        arm.setPosition(armPos + armAdjustment);
+        boxServo.setPosition(boxServoPos);
     }
 
     public double linkageAdjustment = 0.0;
