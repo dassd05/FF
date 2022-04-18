@@ -253,7 +253,9 @@ public class Robot {
     public boolean freightLoaded = false;
     public boolean intakeOn = false;
     public boolean reverse = false;
+    public boolean manualBoxUp = false;
 
+    //old deployment w/o turret go brrrrrrrr
 //    public void updateDeployState() {
 //        switch (deploymentState) {
 //            case REST:
@@ -406,7 +408,10 @@ public class Robot {
 
                     if (!freightLoaded) {
                         if (arm.getPosition() <= ARM_SAFE_MOVE_BOX_IN) {
-                            intakeBox();
+                            if (manualBoxUp)
+                                boxUp();
+                            else
+                                intakeBox();
                         } else {
                             bringIn();
                         }
@@ -505,7 +510,7 @@ public class Robot {
                 turretPos = TURRET_STRAIGHT;
 
                 if (deployTimer.time() > LINKAGE_SAFE_TIME) {
-                    if (slides1.getCurrentPosition() < (TOP + slidesAdjustment) - 200) {
+                    if (slides1.getCurrentPosition() < (TOP + slidesAdjustment) - 600) {
                         if (armPos < ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
                             armPos += armRate;
                         } else if (armPos > ARM_VERTICAL && Math.abs(ARM_VERTICAL - armPos) > armRate + .003) {
@@ -640,7 +645,15 @@ public class Robot {
                     resetArmAdjustment();
                     firstTime = false;
                 }
-                position = LINKAGE_SAFE_AMOUNT;
+                position = LINKAGE_SHARED;
+
+                if (armPos < ARM_CAP && Math.abs(ARM_CAP - armPos) > armRate + .003) {
+                    armPos += armRate;
+                } else if (armPos > ARM_CAP && Math.abs(ARM_CAP - armPos) > armRate + .003) {
+                    armPos -= armRate;
+                } else {
+                    armPos = ARM_CAP;
+                }
 
                 desiredSlidesPosition = (int) Range.clip(CAP + slidesAdjustment, SLIDES_MIN, SLIDES_MAX);
                 power = .7;
@@ -1006,6 +1019,54 @@ public class Robot {
             slides1.setPower(0);
             slides2.setPower(0);
             slidesTimer.reset();
+        }
+    }
+
+
+    public ElapsedTime turnTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+
+    double errorAngle = 0.0;
+    double lastErrorAngle = 0.0;
+    double integralErrorAngle = 0.0;
+    double lastIntegralErrorAngle = 0.0;
+    public boolean runPID = false;
+
+    public double P = 0.0;
+    public double I = 0.0;
+    public double D = 0.0;
+
+    public void turnPID(double position, double update, boolean runPID) {
+        if (runPID) {
+            errorAngle = getAngle() - position;
+            double deltaError = errorAngle - lastErrorAngle;
+            integralErrorAngle += errorAngle /** update*/;
+            double derivative = deltaError / update;
+            turnTimer.reset();
+
+            if (errorAngle > 0 && lastErrorAngle < 0)
+                integralErrorAngle = 0.0;
+            else if (errorAngle < 0 && lastErrorAngle > 0)
+                integralErrorAngle = 0.0;
+
+            P = pidConstsTurn.p * errorAngle;
+            I = pidConstsTurn.i * integralErrorAngle;
+            D = pidConstsTurn.d * derivative;
+
+            setTankPowers(-(P + I + D), (P + I + D));
+
+            lastErrorSlides1 = errorSlides1;
+            lastErrorSlides2 = errorSlides2;
+            lastIntegralErrorAngle = integralErrorAngle;
+        } else {
+            errorAngle = 0.0;
+            lastErrorAngle = 0.0;
+            integralErrorAngle = 0.0;
+            lastIntegralErrorAngle = 0.0;
+            P = 0;
+            I = 0;
+            D = 0;
+            setTankPowers(0,0);
+            turnTimer.reset();
         }
     }
 

@@ -15,10 +15,9 @@ import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDete
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg1;
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg2;
 import static org.firstinspires.ftc.teamcode.drive.Autons.Vision.BoxPositionDetection.BoxDetection.avg3;
-import static org.firstinspires.ftc.teamcode.drive.Constants.*;
 import static org.firstinspires.ftc.teamcode.drive.Robot.*;
 
-@Autonomous(group = "1", name = "\uD83D\uDFE5 Warehouse", preselectTeleOp = "Teleop")
+@Autonomous(group = "1", name = "\uD83D\uDFE5 Warehouse", preselectTeleOp = "TeleOpBlue")
 public class RedWarehouse extends LinearOpMode {
 
     Robot r = new Robot();
@@ -40,7 +39,8 @@ public class RedWarehouse extends LinearOpMode {
     boolean isDeployed = false;
 
     double distance1 = 800;
-    double angle1 = -58;
+    double angle1_middle = -53;
+    double angle1_regular = -57;
     double distance2 = 500;
     double angle2 = -90;
     double distance3 = 1900;
@@ -50,8 +50,6 @@ public class RedWarehouse extends LinearOpMode {
 
         r.telemetry = telemetry;
         r.init(hardwareMap);
-        r.liftBox();
-        r.updateAll();
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().
                 getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -71,27 +69,25 @@ public class RedWarehouse extends LinearOpMode {
             }
         });
 
-//        xPos = 0.0;
-//        yPos = 0.0;
-//        thetaPos = 0.0; //ofc might want to change
-
         sleep(150);
 
-        while (!opModeIsActive())
+        while (!opModeIsActive()) {
+            r.freightLoaded = true;
+            r.updateAll();
             updateBoxPosition();
+        }
 
         waitForStart();
 
         if (isStopRequested()) return;
 
-        r.capper.setPosition(CAP_HIGH);
 
         LeftRedState = LeftRed.FORWARD;
         MiddleRedState = MiddleRed.FORWARD;
         RightRedState = RightRed.FORWARD;
 
         r.autonWaitTimer.reset();
-        //r.odoTimer.reset();
+        r.turnTimer.reset();
         webcam.stopStreaming();
 
         while (opModeIsActive()) {
@@ -112,24 +108,27 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .0095, (r.getAngle() - angle1) * .0095);
+                            r.runPID = (Math.abs(r.getAngle()) < Math.abs(angle1_regular));
 
-                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
+                            if (r.runPID && r.autonWaitTimer.time() < 3500)
+                                r.turnPID(angle1_regular, r.turnTimer.time(), r.runPID);
+                            else {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                r.runPID = false;
                                 LeftRedState = LeftRed.EXTEND;
                             }
+
                             break;
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
-                                r.deployShared();
-                                r.linkageAdjust(-.3);
+                                r.deployBottom();
+                                r.freightLoaded = false;
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 1250) {
-                                r.linkageAdjust(.42);
+                            if (r.autonWaitTimer.time() >= 2000) {
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
                                 firstTime = true;
@@ -137,13 +136,13 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
-                                r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
-                                    r.linkageAdjust(-.4);
+                            if (r.autonWaitTimer.time() >= 600 && runFSM) {
+                                r.deployAlliance();
+                                if (r.autonWaitTimer.time() >= 1500 && firstTime) {
+                                    r.linkageAdjust(-.2);
                                     firstTime = false;
                                 }
-                                if (r.autonWaitTimer.time() >= 2650){
+                                if (r.autonWaitTimer.time() >= 1750) {
                                     r.deployRest();
                                     runFSM = false;
                                     r.autonWaitTimer.reset();
@@ -153,9 +152,12 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case FORWARD2:
+
                             if(r.autonWaitTimer.time() < 1500) {
-                                r.setTankPowers(-(r.getAngle() - 0) * .0095, (r.getAngle() - 0) * .0095);
+                                r.runPID = true;
+                                r.turnPID(0, r.turnTimer.time(), r.runPID);
                             } else {
+                                r.runPID = false;
                                 r.gyroStraight(.65, 0);
                                 if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
                                         Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
@@ -168,11 +170,14 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .0095, (r.getAngle() - angle2) * .0095);
                             if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
+                                r.runPID = false;
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 LeftRedState = LeftRed.PARK;
+                            } else {
+                                r.runPID = true;
+                                r.turnPID(angle2, r.turnTimer.time(), r.runPID);
                             }
                             break;
                         case PARK:
@@ -204,24 +209,25 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .0095, (r.getAngle() - angle1) * .0095);
-
-                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
+                            if (Math.abs(r.getAngle()) >= Math.abs(angle1_regular) || r.autonWaitTimer.time() >= 3500) {
+                                r.runPID = false;
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
                                 RightRedState = RightRed.EXTEND;
+                            } else {
+                                r.runPID = true;
+                                r.turnPID(angle1_regular, r.turnTimer.time(), r.runPID);
                             }
                             break;
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployTop();
-                                r.linkageAdjust(-.3);
+                                r.freightLoaded = false;
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 1250) {
-                                r.linkageAdjust(.34);
+                            if (r.autonWaitTimer.time() >= 2000) {
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
                                 firstTime = true;
@@ -229,25 +235,29 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
-                                r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
-                                    r.linkageAdjust(-.4);
-                                    firstTime = false;
-                                }
-                                if (r.autonWaitTimer.time() >= 2650){
+
+                            if (r.autonWaitTimer.time() >= 600 && runFSM) {
+                                r.deployAlliance();
+                                if (r.autonWaitTimer.time() >= 2500) {
+                                    r.bringIn();
                                     r.deployRest();
                                     runFSM = false;
-                                    r.autonWaitTimer.reset();
-                                    r.resetWheels();
-                                    RightRedState = RightRed.FORWARD2;
                                 }
                             }
+
+                            if (r.autonWaitTimer.time() >= 3500) {
+                                r.autonWaitTimer.reset();
+                                r.resetWheels();
+                                RightRedState = RightRed.FORWARD2;
+                            }
+
                             break;
                         case FORWARD2:
                             if(r.autonWaitTimer.time() < 1500) {
-                                r.setTankPowers(-(r.getAngle() - 0) * .0095, (r.getAngle() - 0) * .0095);
+                                r.runPID = true;
+                                r.turnPID(0, r.turnTimer.time(), r.runPID);
                             } else {
+                                r.runPID = false;
                                 r.gyroStraight(.65, 0);
                                 if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
                                         Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
@@ -265,14 +275,17 @@ public class RedWarehouse extends LinearOpMode {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
                                 RightRedState = RightRed.PARK;
+                            } else {
+                                r.runPID = true;
+                                r.turnPID(angle2, r.turnTimer.time(), r.runPID);
                             }
                             break;
                         case PARK:
                             r.gyroStraight(.85, -90);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance3) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance3)) {
+                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance3 - 50) ||
+                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance3 - 50) ||
+                                    Math.abs(r.backRightPosition()) >= Math.abs(distance3 - 50) ||
+                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance3 - 50)) {
                                 r.setTankPowers(0.0, 0.0);
                                 RightRedState = RightRed.FINISH;
                             }
@@ -307,25 +320,28 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case TURN:
-                            r.setTankPowers(-(r.getAngle() - angle1) * .0095, (r.getAngle() - angle1) * .0095);
+                            r.runPID = (Math.abs(r.getAngle()) < Math.abs(angle1_middle));
 
-                            if (Math.abs(r.getAngle()) >= Math.abs(angle1) || r.autonWaitTimer.time() >= 3500) {
+                            if (r.runPID && r.autonWaitTimer.time() < 3500)
+                                r.turnPID(angle1_middle, r.turnTimer.time(), r.runPID);
+                            else {
                                 r.setTankPowers(0, 0);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
+                                r.runPID = false;
                                 MiddleRedState = MiddleRed.EXTEND;
                             }
+
                             break;
                         case EXTEND:
                             if (r.autonWaitTimer.time() >= 250 && runFSM) {
                                 r.deployMiddle();
-                                r.slidesAdjust(-10);
-                                r.linkageAdjust(-.3);
+                                r.freightLoaded = false;
                                 runFSM = false;
                                 isDeployed = true;
                             }
-                            if (r.autonWaitTimer.time() >= 1250) {
-                                r.linkageAdjust(.58);
+                            if (r.autonWaitTimer.time() >= 2000) {
+                                r.linkageAdjust(.3);
                                 r.autonWaitTimer.reset();
                                 runFSM = true;
                                 firstTime = true;
@@ -333,38 +349,41 @@ public class RedWarehouse extends LinearOpMode {
                             }
                             break;
                         case DROP:
-                            if (r.autonWaitTimer.time() >= 1000 && runFSM) {
-                                r.dropoffBox();
-                                if (r.autonWaitTimer.time() >= 1750 && firstTime) {
-                                    r.linkageAdjust(-.4);
-                                    firstTime = false;
-                                }
-                                if (r.autonWaitTimer.time() >= 2650){
+                            if (r.autonWaitTimer.time() >= 600 && runFSM) {
+                                r.deployAlliance();
+                                if (r.autonWaitTimer.time() >= 2500) {
+                                    r.bringIn();
                                     r.deployRest();
                                     runFSM = false;
-                                    r.autonWaitTimer.reset();
-                                    r.resetWheels();
-                                    MiddleRedState = MiddleRed.FORWARD2;
                                 }
+                            }
+
+                            if (r.autonWaitTimer.time() >= 3500){
+                                r.autonWaitTimer.reset();
+                                r.resetWheels();
+                                MiddleRedState = MiddleRed.FORWARD2;
                             }
                             break;
                         case FORWARD2:
                             r.gyroStraight(.5, 0);
-                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2) ||
-                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2)) {
+                            if (Math.abs(r.backLeftPosition()) >= Math.abs(distance2/2) ||
+                                    Math.abs(r.frontLeftPosition()) >= Math.abs(distance2/2) ||
+                                    Math.abs(r.backRightPosition()) >= Math.abs(distance2/2) ||
+                                    Math.abs(r.frontRightPosition()) >= Math.abs(distance2/2)) {
                                 r.setTankPowers(0.0, 0.0);
                                 r.autonWaitTimer.reset();
                                 MiddleRedState = MiddleRed.TURN2;
                             }
                             break;
                         case TURN2:
-                            r.setTankPowers(-(r.getAngle() - angle2) * .0095, (r.getAngle() - angle2) * .0095);
                             if (Math.abs(r.getAngle()) >= Math.abs(angle2) || r.autonWaitTimer.time() >= 3500) {
                                 r.setTankPowers(0, 0);
                                 r.resetWheels();
+                                r.runPID = false;
                                 MiddleRedState = MiddleRed.PARK;
+                            } else {
+                                r.runPID = true;
+                                r.turnPID(angle2, r.turnTimer.time(), r.runPID);
                             }
                             break;
                         case PARK:
@@ -384,27 +403,34 @@ public class RedWarehouse extends LinearOpMode {
             }
 
             r.updateAll();
-//
-//            telemetry.addData("x", r.getX());
-//            telemetry.addData("y", r.getY());
-//            telemetry.addData("heading", r.getTheta());
+
+            telemetry.addData("box", r.boxState);
             telemetry.addData("angle", r.getAngle());
+            telemetry.addData("front left", r.frontLeftPosition());
+            telemetry.addData("back left", r.backLeftPosition());
+            telemetry.addData("front right", r.frontRightPosition());
+            telemetry.addData("back right", r.backRightPosition());
             telemetry.update();
         }
     }
 
     public void updateBoxPosition() {
-        if (pipeline.position == null) {
-            telemetry.addData("still working on it", "gimme a sec");
-        } else if (pipeline.position == BoxPositionDetection.BoxPosition.RIGHT){
-            telemetry.addData("Right Barcode, Top Level", "Waiting for start");
-            WhatPosition = ThisPosition.RIGHT_POSITION;
-        } else if (pipeline.position == BoxPositionDetection.BoxPosition.MIDDLE){
-            telemetry.addData("Middle Barcode, Middle Level", "Waiting for start");
-            WhatPosition = ThisPosition.MIDDLE_POSITION;
-        } else if (pipeline.position == BoxPositionDetection.BoxPosition.LEFT){
-            telemetry.addData("Left Barcode, Bottom Level", "Waiting for start");
-            WhatPosition = ThisPosition.LEFT_POSITION;
+        switch (pipeline.position) {
+            case MIDDLE:
+                telemetry.addData("Middle Barcode, Middle Level", "Waiting for start");
+                WhatPosition = ThisPosition.MIDDLE_POSITION;
+                break;
+            case LEFT:
+                telemetry.addData("Left Barcode, Bottom Level", "Waiting for start");
+                WhatPosition = ThisPosition.LEFT_POSITION;
+                break;
+            case RIGHT:
+                telemetry.addData("Right Barcode, Top Level", "Waiting for start");
+                WhatPosition = ThisPosition.RIGHT_POSITION;
+                break;
+            default:
+                telemetry.addData("still working on it", "gimme a sec");
+                break;
         }
         telemetry.addData("average 1", avg1);
         telemetry.addData("average 2", avg2);
@@ -413,3 +439,4 @@ public class RedWarehouse extends LinearOpMode {
         sleep(75);
     }
 }
+

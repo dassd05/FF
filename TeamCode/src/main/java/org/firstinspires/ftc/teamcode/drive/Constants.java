@@ -15,6 +15,7 @@ public class Constants {
     public static double ARM_VERTICAL = .425;
     public static double ARM_STRAIGHT_OUT = .777;
     public static double ARM_SAFE_MOVE_BOX_IN = .129;
+    public static double ARM_CAP = .53;
     public static double ARM_SAFE_MOVE_BOX_OUT = .354;
     public static double TURRET_STRAIGHT = .518;
     public static double TURRET_LEFT_90 = .907;
@@ -58,17 +59,19 @@ public class Constants {
 
     public static int TOP = 820;
     public static int MID = 400;
-    public static int CAP = 1150;
+    public static int CAP = 1000;
 
     //TODO: fix these adjustments as necessary
-    public static double LINKAGE_ADJUSTMENT = .058;
-    public static int SLIDES_ADJUSTMENT = 7;
+    public static double LINKAGE_ADJUSTMENT = .055;
+    public static int SLIDES_ADJUSTMENT = 9;
 
     public static double INTAKE_POWER = 0.6;
 
     public static PIDCoefficients pidConsts = new PIDCoefficients(0.0, 0.000, 0.0);
     public static PIDCoefficients pidConstsSlides = new PIDCoefficients(0.0045, 0.00000000, 0.0);
     //TODO: tune PID
+
+    public static PIDCoefficients pidConstsTurn = new PIDCoefficients(0.008, 0.00022, 0);
 
     public static double WHEEL_RADIUS = 0.0;
     public static double TICKS_PER_REV = 0.0;

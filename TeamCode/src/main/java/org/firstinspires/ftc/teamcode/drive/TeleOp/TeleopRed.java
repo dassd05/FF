@@ -97,6 +97,12 @@ public class TeleopRed extends LinearOpMode {
                         r.deployMiddle();
                 }
 
+                if (r.deploymentState != deployState.REST) {
+                    r.manualBoxUp = false;
+                } else if (button == Button.x) {
+                    r.manualBoxUp  = !r.manualBoxUp;
+                }
+
             }
         };
 
